@@ -1,0 +1,60 @@
+{
+  "Navbar": {
+    "search_placeholder": "Search for products, vendors, or categories...",
+    "login": "Login",
+    "cart": "Cart"
+  },
+  "Hero": {
+    "badge": "Unique and Reliable Shopping Experience",
+    "title_part1": "Everything you need in",
+    "title_highlight": "One Commercial Platform",
+    "subtitle": "Discover thousands of premium products from top local vendors. Guaranteed quality, fast delivery, and 24/7 support.",
+    "cta_shop": "Shop Now",
+    "cta_vendor": "Start Selling with Us",
+    "stat_products": "Products Available",
+    "stat_customers": "Happy Customers",
+    "stat_vendors": "Trusted Vendors",
+    "notification": "New order delivered",
+    "notification_time": "2 mins ago"
+  },
+  "Footer": {
+    "brand_description": "TUJARIA is your trusted e-commerce platform in the region, bringing together top vendors and latest products for an unmatched shopping experience.",
+    "quick_links": "Quick Links",
+    "about_us": "About Us",
+    "shop_now": "Shop Now",
+    "become_vendor": "Become a Vendor",
+    "faq": "FAQ",
+    "categories": "Categories",
+    "electronics": "Electronics",
+    "fashion": "Fashion",
+    "home_garden": "Home & Garden",
+    "beauty": "Beauty",
+    "contact_us": "Contact Us",
+    "privacy_policy": "Privacy Policy",
+    "terms_conditions": "Terms & Conditions"
+  },
+  "Auth": {
+    "login_title": "Welcome Back",
+    "login_subtitle": "Login to continue your shopping experience",
+    "email": "Email Address",
+    "email_placeholder": "name@example.com",
+    "password": "Password",
+    "password_placeholder": "••••••••",
+    "forgot_password": "Forgot Password?",
+    "login_button": "Login",
+    "or_continue_with": "Or continue with",
+    "no_account": "Don't have an account?",
+    "register_link": "Create new account",
+    "register_title": "Create Account",
+    "register_subtitle": "Join TUJARIA community and start shopping today",
+    "full_name": "Full Name",
+    "full_name_placeholder": "John Doe",
+    "phone": "Phone Number",
+    "phone_placeholder": "01234567890",
+    "agree_to": "By registering you agree to",
+    "terms_link": "Terms of Use and Privacy Policy",
+    "register_button": "Create Account",
+    "already_have_account": "Already have an account?",
+    "login_link": "Login here"
+  }
+}

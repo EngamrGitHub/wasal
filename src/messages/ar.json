@@ -1,0 +1,60 @@
+{
+  "Navbar": {
+    "search_placeholder": "ابحث عن منتجات، تجار، أو تصنيفات...",
+    "login": "تسجيل الدخول",
+    "cart": "السلة"
+  },
+  "Hero": {
+    "badge": "تجربة تسوق فريدة وموثوقة",
+    "title_part1": "كل ما تحتاجه في",
+    "title_highlight": "منصة تجارية واحدة",
+    "subtitle": "اكتشف آلاف المنتجات المميزة من أفضل التجار المحليين. جودة مضمونة، توصيل سريع، ودعم فني على مدار الساعة.",
+    "cta_shop": "تسوق الآن",
+    "cta_vendor": "ابدأ البيع معنا",
+    "stat_products": "منتج متاح",
+    "stat_customers": "عميل سعيد",
+    "stat_vendors": "تاجر موثوق",
+    "notification": "تم توصيل طلب جديد",
+    "notification_time": "قبل 2 دقيقة"
+  },
+  "Footer": {
+    "brand_description": "تجاريا هي منصتك الموثوقة للتجارة الإلكترونية في المنطقة، نجمع بين أفضل التجار وأحدث المنتجات لنوفر لك تجربة تسوق لا مثيل لها.",
+    "quick_links": "روابط سريعة",
+    "about_us": "من نحن",
+    "shop_now": "تسوق الآن",
+    "become_vendor": "كن تاجراً",
+    "faq": "الأسئلة الشائعة",
+    "categories": "التصنيفات",
+    "electronics": "الإلكترونيات",
+    "fashion": "الأزياء",
+    "home_garden": "المنزل والحديقة",
+    "beauty": "الجمال",
+    "contact_us": "اتصل بنا",
+    "privacy_policy": "سياسة الخصوصية",
+    "terms_conditions": "الشروط والأحكام"
+  },
+  "Auth": {
+    "login_title": "مرحباً بك مجدداً",
+    "login_subtitle": "سجل دخولك لمتابعة تجربة التسوق الخاصة بك",
+    "email": "البريد الإلكتروني",
+    "email_placeholder": "name@example.com",
+    "password": "كلمة المرور",
+    "password_placeholder": "••••••••",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "login_button": "تسجيل الدخول",
+    "or_continue_with": "أو تابع باستخدام",
+    "no_account": "ليس لديك حساب؟",
+    "register_link": "إنشاء حساب جديد",
+    "register_title": "إنشاء حساب",
+    "register_subtitle": "انضم إلى مجتمع تجاريا وابدأ التسوق اليوم",
+    "full_name": "الاسم الكامل",
+    "full_name_placeholder": "محمد علي",
+    "phone": "رقم الهاتف",
+    "phone_placeholder": "01234567890",
+    "agree_to": "بالتسجيل أنت توافق على",
+    "terms_link": "شروط الاستخدام وسياسة الخصوصية",
+    "register_button": "إنشاء الحساب",
+    "already_have_account": "لديك حساب بالفعل؟",
+    "login_link": "سجل دخولك"
+  }
+}
