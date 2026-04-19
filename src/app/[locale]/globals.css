@@ -2,22 +2,22 @@
 
 :root {
   /* Core Foundation */
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  --background: #FFFFFF;
+  --foreground: #1A1A1A;
   
-  /* Brand Colors */
-  --primary: #0F172A;
+  /* Brand Colors - Matching the Orange Theme */
+  --primary: #F58220;
   --primary-foreground: #FFFFFF;
   
-  --secondary: #F59E0B;
-  --secondary-foreground: #0F172A;
+  --secondary: #2D3E50;
+  --secondary-foreground: #FFFFFF;
   
-  --accent: #6366F1;
+  --accent: #F58220;
   
   /* UI Elements */
   --surface: #FFFFFF;
-  --muted: #64748B;
-  --border: #E2E8F0;
+  --muted: #717171;
+  --border: #E5E7EB;
   
   /* Status Colors */
   --success: #10B981;

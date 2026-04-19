@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, User, Search, Menu, Globe } from 'lucide-react'
+import { ShoppingCart, Search, Home, Store, Settings2 } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -17,54 +17,72 @@ export function Navbar() {
     router.push(newPath || `/${newLocale}`);
   };
 
+  const navItems = [
+    { icon: ShoppingCart, label: t('cart'), href: `/${locale}/cart`, badge: 2 },
+    { icon: Settings2, label: t('admin'), href: `/${locale}/admin` },
+    { icon: Store, label: t('merchants'), href: `/${locale}/merchants` },
+    { icon: Home, label: t('home'), href: `/${locale}` },
+  ];
+
   return (
-    <nav className="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
+      <div className="container mx-auto px-4 h-24 flex items-center justify-between gap-8">
         {/* Logo */}
-        <Link href={`/${locale}`} className="flex items-center space-x-2 space-x-reverse group">
-          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
-            <Globe className="text-white w-6 h-6" />
-          </div>
-          <span className="text-2xl font-bold tracking-tighter text-primary">
+        <Link href={`/${locale}`} className="shrink-0">
+          <span className="text-4xl font-black tracking-tight text-primary uppercase">
             TUJARIA
           </span>
         </Link>
 
-        {/* Search Bar - Desktop */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className={`absolute ${locale === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 text-muted w-4 h-4`} />
+        {/* Search Bar */}
+        <div className="flex-1 max-w-2xl">
+          <div className="relative flex items-center">
             <input 
               type="text" 
               placeholder={t('search_placeholder')}
-              className={`w-full bg-background border border-border rounded-full py-2.5 ${locale === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'} text-sm focus:outline-none focus:ring-2 focus:ring-accent transition-all`}
+              className={`w-full h-12 bg-white border-2 border-primary/20 rounded-full ${locale === 'ar' ? 'pr-6 pl-24' : 'pl-6 pr-24'} text-sm focus:outline-none focus:border-primary transition-all`}
             />
+            <button className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-8 bg-primary text-white rounded-full font-bold text-sm hover:opacity-90 transition-opacity`}>
+              {locale === 'ar' ? 'بحث' : 'Search'}
+            </button>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center space-x-4 space-x-reverse">
-          {/* Language Switcher */}
+        {/* Actions Icons */}
+        <div className="hidden lg:flex items-center gap-6">
+          {navItems.map((item, index) => (
+            <Link 
+              key={index} 
+              href={item.href}
+              className="flex flex-col items-center gap-1 group relative transition-colors hover:text-primary"
+            >
+              <div className="relative p-2 rounded-xl group-hover:bg-primary/5 transition-colors">
+                <item.icon className="w-6 h-6 text-gray-500 group-hover:text-primary transition-colors" />
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+              <span className="text-[12px] font-bold text-gray-600 group-hover:text-primary whitespace-nowrap">
+                {item.label}
+              </span>
+            </Link>
+          ))}
+          
+          {/* Language Toggle */}
           <button 
             onClick={toggleLanguage}
-            className="flex items-center space-x-1 space-x-reverse px-3 py-1.5 rounded-lg hover:bg-background transition-colors text-sm font-bold text-foreground"
+            className="flex flex-col items-center gap-1 group"
           >
-            <Globe className="w-4 h-4 text-accent" />
-            <span>{locale === 'ar' ? 'EN' : 'عربي'}</span>
-          </button>
-
-          <button className="p-2 hover:bg-background rounded-full transition-colors relative group">
-            <ShoppingCart className="w-6 h-6 text-muted group-hover:text-primary transition-colors" />
-            <span className="absolute top-0 right-0 w-4 h-4 bg-secondary text-secondary-foreground text-[10px] flex items-center justify-center rounded-full font-bold">0</span>
-          </button>
-          
-          <Link href={`/${locale}/login`} className="flex items-center space-x-2 space-x-reverse px-6 py-2.5 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-all font-medium text-sm shadow-premium">
-            <User className="w-4 h-4" />
-            <span>{t('login')}</span>
-          </Link>
-
-          <button className="md:hidden p-2 text-primary">
-            <Menu className="w-6 h-6" />
+            <div className="p-2 rounded-xl group-hover:bg-primary/5">
+              <span className="text-xl font-bold text-gray-500 group-hover:text-primary">
+                {locale === 'ar' ? 'EN' : 'AR'}
+              </span>
+            </div>
+            <span className="text-[12px] font-bold text-gray-600 group-hover:text-primary">
+              {locale === 'ar' ? 'English' : 'العربية'}
+            </span>
           </button>
         </div>
       </div>

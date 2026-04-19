@@ -22,7 +22,7 @@ export default function AuthLayout({
             </div>
 
             {/* Main Content */}
-            <div className="flex-grow flex items-center justify-center p-4">
+            <div className="grow flex items-center justify-center p-4">
                 <div className="w-full max-w-md bg-surface border border-border rounded-3xl p-8 shadow-premium animate-fade-in">
                     {children}
                 </div>

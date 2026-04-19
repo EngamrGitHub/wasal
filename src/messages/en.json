@@ -1,21 +1,27 @@
 {
   "Navbar": {
-    "search_placeholder": "Search for products, vendors, or categories...",
-    "login": "Login",
-    "cart": "Cart"
+    "search_placeholder": "Search for products, brands or categories...",
+    "home": "Home",
+    "merchants": "Merchants",
+    "admin": "Management",
+    "cart": "Shopping Cart",
+    "login": "Login"
   },
   "Hero": {
-    "badge": "Unique and Reliable Shopping Experience",
-    "title_part1": "Everything you need in",
-    "title_highlight": "One Commercial Platform",
-    "subtitle": "Discover thousands of premium products from top local vendors. Guaranteed quality, fast delivery, and 24/7 support.",
-    "cta_shop": "Shop Now",
-    "cta_vendor": "Start Selling with Us",
-    "stat_products": "Products Available",
-    "stat_customers": "Happy Customers",
-    "stat_vendors": "Trusted Vendors",
-    "notification": "New order delivered",
-    "notification_time": "2 mins ago"
+    "slides": {
+      "fashion": {
+        "title": "Huge Discounts! Save up to 90%",
+        "subtitle": "Free shipping on all orders today"
+      },
+      "electronics": {
+        "title": "Best Offers on Electronics",
+        "subtitle": "Discover the latest devices at amazing prices"
+      },
+      "home": {
+        "title": "Everything your home needs in one place",
+        "subtitle": "Guaranteed quality and fast delivery"
+      }
+    }
   },
   "Footer": {
     "brand_description": "TUJARIA is your trusted e-commerce platform in the region, bringing together top vendors and latest products for an unmatched shopping experience.",
@@ -56,5 +62,22 @@
     "register_button": "Create Account",
     "already_have_account": "Already have an account?",
     "login_link": "Login here"
+  },
+  "Categories": {
+    "title": "Categories",
+    "view_all": "View All",
+    "fashion": "Fashion",
+    "electronics": "Electronics",
+    "home": "Home",
+    "beauty": "Beauty",
+    "toys": "Toys",
+    "sports": "Sports",
+    "supermarket": "Supermarket",
+    "books": "Books"
+  },
+  "NotFound": {
+    "title": "Oops, page not found",
+    "description": "It looks like you took a wrong turn or the page has been moved.",
+    "button": "Back to Home"
   }
 }

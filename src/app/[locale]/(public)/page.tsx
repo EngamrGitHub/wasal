@@ -1,11 +1,9 @@
-import React from 'react'
+import Home from '@/src/features/(public)/home/home'
 
-function page() {
+export default function Page() {
     return (
         <div>
-            <h1>Home</h1>
+            <Home />
         </div>
     )
 }
-
-export default page
