@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/src/components/layout/Navbar";
 import { routing } from '@/src/i18n/routing';
+import QueryProvider from '@/src/components/providers/QueryProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,12 +51,14 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={direction} className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {/* <Navbar /> */}
-          <main className="min-h-screen">
-            {children}
-          </main>
-        </NextIntlClientProvider>
+        <QueryProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            {/* <Navbar /> */}
+            <main className="min-h-screen">
+              {children}
+            </main>
+          </NextIntlClientProvider>
+        </QueryProvider>
       </body>
     </html>
   );

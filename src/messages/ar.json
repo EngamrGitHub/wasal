@@ -79,5 +79,140 @@
     "title": "عذراً، الصفحة غير موجودة",
     "description": "يبدو أنك سلكت طريقاً خاطئاً أو أن الصفحة قد تم نقلها.",
     "button": "العودة للرئيسية"
+  },
+  "Common": {
+    "actions": "الإجراءات",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "save": "حفظ التغييرات",
+    "cancel": "إلغاء",
+    "loading": "جاري التحميل...",
+    "status": {
+      "APPROVED": "تمت الموافقة",
+      "PENDING_APPROVAL": "بانتظار موافقة الإدارة",
+      "REJECTED": "مرفوض",
+      "DELIVERED": "تم التوصيل",
+      "PROCESSING": "قيد التجهيز",
+      "PENDING": "قيد الانتظار",
+      "CANCELLED": "ملغي",
+      "Active": "نشط",
+      "Suspended": "موقوف",
+      "Admin": "مسؤول",
+      "Merchant": "تاجر",
+      "Customer": "عميل"
+    }
+  },
+  "Admin": {
+    "Sidebar": {
+      "dashboard": "لوحة التحكم",
+      "products": "المنتجات",
+      "orders": "الطلبات",
+      "users": "المستخدمين",
+      "settings": "الإعدادات"
+    },
+    "Header": {
+      "search_placeholder": "...البحث"
+    },
+    "Dashboard": {
+      "title": "نظرة عامة للوحة التحكم",
+      "description": "مرحباً بك في لوحة تحكم الإدارة. إليك ملخص للنظام."
+    },
+    "Users": {
+      "title": "إدارة المستخدمين",
+      "description": "إدارة العملاء، التجار، وحسابات الإدارة.",
+      "columns": {
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "role": "الدور",
+        "joined": "تاريخ الانضمام",
+        "status": "الحالة"
+      }
+    }
+  },
+  "Merchant": {
+    "Sidebar": {
+      "dashboard": "لوحة التحكم",
+      "products": "منتجاتي",
+      "orders": "الطلبات",
+      "settings": "إعدادات المتجر"
+    },
+    "Header": {
+      "search_placeholder": "...البحث",
+      "store_name": "اسم متجري",
+      "store_email": "merchant@tujaria.com"
+    },
+    "Dashboard": {
+      "title": "لوحة التحكم",
+      "description": "مرحباً بعودتك! إليك ما يحدث في متجرك اليوم.",
+      "stats": {
+        "total_sales": "إجمالي المبيعات",
+        "active_products": "المنتجات النشطة",
+        "pending_orders": "الطلبات المعلقة",
+        "store_rating": "تقييم المتجر"
+      },
+      "recent_sales": "المبيعات الأخيرة",
+      "recent_activity": "أحدث النشاطات"
+    },
+    "Products": {
+      "title": "منتجاتي",
+      "description": "إدارة منتجاتك ومتابعة حالة الموافقة عليها.",
+      "add_button": "إضافة منتج",
+      "empty_title": "لا توجد منتجات بعد",
+      "empty_desc": "لم تقم بإضافة أي منتجات لمتجرك حتى الآن. ابدأ بإضافة المنتجات للوصول إلى المزيد من العملاء.",
+      "empty_btn": "أضف منتجك الأول",
+      "columns": {
+        "title": "الاسم",
+        "price": "السعر",
+        "stock": "المخزون",
+        "status": "الحالة"
+      },
+      "Add": {
+        "title": "إضافة منتج جديد",
+        "description": "أدخل التفاصيل لتقديم منتج جديد لموافقة الإدارة.",
+        "submit": "إرسال للموافقة",
+        "submitting": "جاري الإرسال...",
+        "images": "صور المنتج",
+        "upload_file": "اختر ملفاً",
+        "drag_drop": "أو اسحب وأفلت هنا",
+        "file_hint": "حتى 10 ميغابايت PNG, JPG, GIF",
+        "product_title": "اسم المنتج",
+        "title_placeholder": "مثل: حذاء رياضي ممتاز",
+        "price": "السعر ($)",
+        "price_placeholder": "0.00",
+        "stock": "المخزون المبدئي",
+        "stock_placeholder": "100",
+        "category": "الفئة",
+        "select_category": "اختر فئة",
+        "description_label": "الوصف",
+        "description_placeholder": "صف منتجك بالتفصيل...",
+        "validation": {
+          "title_min": "يجب أن يتكون العنوان من 3 أحرف على الأقل",
+          "desc_min": "يجب أن يتكون الوصف من 10 أحرف على الأقل",
+          "price_valid": "يجب أن يكون السعر رقماً صالحاً",
+          "price_positive": "يجب أن يكون السعر رقماً إيجابياً",
+          "stock_valid": "يجب أن يكون المخزون رقماً صالحاً",
+          "stock_positive": "لا يمكن أن يكون المخزون بالسالب",
+          "category_required": "الرجاء اختيار فئة"
+        }
+      },
+      "Edit": {
+        "title": "تعديل المنتج",
+        "description": "تحديث تفاصيل المنتج. ستحتاج التغييرات لموافقة الإدارة.",
+        "loading": "جاري تحميل بيانات المنتج..."
+      }
+    },
+    "Orders": {
+      "title": "الطلبات",
+      "description": "إدارة طلبات العملاء وتتبع حالة الشحن والتوصيل.",
+      "empty_title": "لا توجد طلبات بعد",
+      "empty_desc": "ليس لديك أي طلبات في الوقت الحالي. استمر في ترويج متجرك!",
+      "columns": {
+        "order_id": "رقم الطلب",
+        "customer": "العميل",
+        "date": "التاريخ",
+        "total": "الإجمالي",
+        "status": "الحالة"
+      }
+    }
   }
 }

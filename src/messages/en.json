@@ -79,5 +79,140 @@
     "title": "Oops, page not found",
     "description": "It looks like you took a wrong turn or the page has been moved.",
     "button": "Back to Home"
+  },
+  "Common": {
+    "actions": "Actions",
+    "edit": "Edit",
+    "add": "Add",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "status": {
+      "APPROVED": "Approved",
+      "PENDING_APPROVAL": "Pending Admin Approval",
+      "REJECTED": "Rejected",
+      "DELIVERED": "Delivered",
+      "PROCESSING": "Processing",
+      "PENDING": "Pending",
+      "CANCELLED": "Cancelled",
+      "Active": "Active",
+      "Suspended": "Suspended",
+      "Admin": "Admin",
+      "Merchant": "Merchant",
+      "Customer": "Customer"
+    }
+  },
+  "Admin": {
+    "Sidebar": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "orders": "Orders",
+      "users": "Users",
+      "settings": "Settings"
+    },
+    "Header": {
+      "search_placeholder": "Search..."
+    },
+    "Dashboard": {
+      "title": "Dashboard Overview",
+      "description": "Welcome to the admin dashboard. Here's a summary of the system."
+    },
+    "Users": {
+      "title": "Users Management",
+      "description": "Manage customers, merchants, and admin accounts.",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "joined": "Joined",
+        "status": "Status"
+      }
+    }
+  },
+  "Merchant": {
+    "Sidebar": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "orders": "Orders",
+      "settings": "Store Settings"
+    },
+    "Header": {
+      "search_placeholder": "Search...",
+      "store_name": "My Store Name",
+      "store_email": "merchant@tujaria.com"
+    },
+    "Dashboard": {
+      "title": "Dashboard",
+      "description": "Welcome back! Here is what's happening with your store today.",
+      "stats": {
+        "total_sales": "Total Sales",
+        "active_products": "Active Products",
+        "pending_orders": "Pending Orders",
+        "store_rating": "Store Rating"
+      },
+      "recent_sales": "Recent Sales",
+      "recent_activity": "Recent Activity"
+    },
+    "Products": {
+      "title": "My Products",
+      "description": "Manage your products and monitor their approval status.",
+      "add_button": "Add Product",
+      "empty_title": "No Products Yet",
+      "empty_desc": "You haven't added any products to your store. Start adding products to reach more customers.",
+      "empty_btn": "Add Your First Product",
+      "columns": {
+        "title": "Title",
+        "price": "Price",
+        "stock": "Stock",
+        "status": "Status"
+      },
+      "Add": {
+        "title": "Add New Product",
+        "description": "Fill in the details to submit a new product for admin approval.",
+        "submit": "Submit for Approval",
+        "submitting": "Submitting...",
+        "images": "Product Images",
+        "upload_file": "Upload a file",
+        "drag_drop": "or drag and drop",
+        "file_hint": "PNG, JPG, GIF up to 10MB",
+        "product_title": "Product Title",
+        "title_placeholder": "e.g. Premium Sneakers",
+        "price": "Price ($)",
+        "price_placeholder": "0.00",
+        "stock": "Initial Stock",
+        "stock_placeholder": "100",
+        "category": "Category",
+        "select_category": "Select a category",
+        "description_label": "Description",
+        "description_placeholder": "Describe your product in detail...",
+        "validation": {
+          "title_min": "Title must be at least 3 characters",
+          "desc_min": "Description must be at least 10 characters",
+          "price_valid": "Price must be a valid number",
+          "price_positive": "Price must be a positive number",
+          "stock_valid": "Stock must be a valid number",
+          "stock_positive": "Stock cannot be negative",
+          "category_required": "Please select a category"
+        }
+      },
+      "Edit": {
+        "title": "Edit Product",
+        "description": "Update your product details. Changes will require admin approval.",
+        "loading": "Loading product data..."
+      }
+    },
+    "Orders": {
+      "title": "Orders",
+      "description": "Manage your customer orders and track their fulfillment status.",
+      "empty_title": "No Orders Yet",
+      "empty_desc": "You don't have any orders at the moment. Keep promoting your store!",
+      "columns": {
+        "order_id": "Order ID",
+        "customer": "Customer",
+        "date": "Date",
+        "total": "Total",
+        "status": "Status"
+      }
+    }
   }
 }
