@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, UploadCloud } from 'lucide-react';
 import { Link } from '@/src/i18n/routing';
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 
 // Function to generate schema with translations
 const getProductSchema = (t: any) => z.object({
@@ -19,10 +20,12 @@ const getProductSchema = (t: any) => z.object({
   category: z.string().min(1, t('validation.category_required')),
 });
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function EditProductPage() {
+  const params = useParams(); 
+  const id = params.id;
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  
+
   const t = useTranslations('Merchant.Products.Edit');
   const tAdd = useTranslations('Merchant.Products.Add');
   const tCommon = useTranslations('Common');
@@ -41,12 +44,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
   // Mock fetching existing product data
   const { data: product, isLoading } = useQuery({
-    queryKey: ['product', params.id],
+    queryKey: ['product', id],
     queryFn: async () => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return {
-        id: params.id,
+        id,
         title: 'Premium Sneakers',
         description: 'High quality premium sneakers for everyday use.',
         price: 120.00,
@@ -78,7 +81,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       // Enforce status reset to PENDING_APPROVAL upon edit
       const payload = {
         ...data,
-        id: params.id,
+        id,
         status: 'PENDING_APPROVAL'
       };
       
