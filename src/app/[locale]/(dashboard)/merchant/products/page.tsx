@@ -1,106 +1,98 @@
 'use client';
 
-import { EmptyState } from '@/src/components/admin/EmptyState';
-import { Column, DataTable } from '@/src/components/admin/DataTable';
-import { PackagePlus, Plus, Package } from 'lucide-react';
-import { Link } from '@/src/i18n/routing';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Product } from '@/src/types';
+import { ProductCard } from '@/src/components/ui/ProductCard';
+import { useSupabaseData } from '@/src/hooks/useSupabaseData';
+import { ProductService } from '@/src/services/productService'; // We will extend this to get Merchant Products
+import { Loader } from '@/src/components/ui/Loader';
+import { Plus, Info } from 'lucide-react';
+import { BaseService } from '@/src/services/baseService';
 
-// Mock data to demonstrate the UI until actual API integration
-const initialProducts = [
-  { id: '1', title: 'Premium Sneakers', price: 120, stock: 45, status: 'APPROVED' },
-  { id: '2', title: 'Wireless Headphones', price: 299, stock: 12, status: 'PENDING_APPROVAL' },
-  { id: '3', title: 'Cotton T-Shirt', price: 25, stock: 100, status: 'REJECTED' },
-];
+// We can use the Generic BaseService directly for products here 
+// because Supabase Row Level Security (RLS) will automatically filter by Merchant's Store!
+const MerchantProductService = new BaseService<Product>('products');
 
 export default function MerchantProductsPage() {
-  const [products] = useState(initialProducts);
   const t = useTranslations('Merchant.Products');
   const tCommon = useTranslations('Common');
 
-  const columns: Column<typeof products[0]>[] = [
-    { header: t('columns.title'), accessorKey: 'title' },
-    { 
-      header: t('columns.price'), 
-      accessorKey: 'price',
-      cell: (item) => `$${item.price.toFixed(2)}`
-    },
-    { header: t('columns.stock'), accessorKey: 'stock' },
-    { 
-      header: t('columns.status'), 
-      accessorKey: 'status',
-      cell: (item) => {
-        let badgeStyle = 'bg-gray-100 text-gray-700';
-        
-        if (item.status === 'APPROVED') {
-          badgeStyle = 'bg-success/10 text-success';
-        } else if (item.status === 'PENDING_APPROVAL') {
-          badgeStyle = 'bg-warning/10 text-warning';
-        } else if (item.status === 'REJECTED') {
-          badgeStyle = 'bg-error/10 text-error';
-        }
+  // Fetching ONLY this merchant's products (RLS Policy handles the security)
+  const { data: products, loading, error } = useSupabaseData<Product>(MerchantProductService);
 
-        return (
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${badgeStyle}`}>
-            {tCommon(`status.${item.status}`)}
-          </span>
-        );
-      }
-    },
-    {
-      header: tCommon('actions'),
-      accessorKey: 'actions',
-      cell: (item) => (
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/merchant/products/${item.id}`}
-            className="text-sm font-bold text-primary hover:underline"
-          >
-            {tCommon('edit')}
-          </Link>
-        </div>
-      )
-    }
-  ];
+  if (loading) {
+    return <Loader size="lg" text={tCommon('loading') || "Loading your products..."} />;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-foreground">{t('title')}</h1>
-          <p className="text-gray-500 mt-2">{t('description')}</p>
+          <h1 className="text-3xl font-black text-foreground">{t('title') || 'My Products'}</h1>
+          <p className="text-gray-500 mt-2">{t('description') || 'Manage your products and monitor their approval status.'}</p>
         </div>
-        <Link 
-          href="/merchant/products/add" 
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors"
-        >
+        <button className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors shadow-sm">
           <Plus className="w-5 h-5" />
-          {t('add_button')}
-        </Link>
+          {t('add_button') || 'Add Product'}
+        </button>
       </div>
 
-      {products.length === 0 ? (
-        <EmptyState 
-          icon={Package}
-          title={t('empty_title')} 
-          description={t('empty_desc')}
-          action={
-            <Link 
-              href="/merchant/products/add" 
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
-            >
-              <PackagePlus className="w-5 h-5" />
-              {t('empty_btn')}
-            </Link>
-          }
-        />
+      {error ? (
+        <div className="p-8 text-center text-red-500 bg-red-50 rounded-xl border border-red-100">
+          Error: {error}
+        </div>
+      ) : products.length === 0 ? (
+        <div className="bg-gray-50 rounded-xl p-12 text-center border border-gray-200 flex flex-col items-center gap-4">
+          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+            <Plus className="w-8 h-8 text-gray-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">{t('empty_title') || 'No Products Yet'}</h3>
+            <p className="text-gray-500 max-w-sm mt-1">{t('empty_desc') || 'Start adding products to reach more customers.'}</p>
+          </div>
+          <button className="mt-2 bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
+             {t('empty_btn') || 'Add Your First Product'}
+          </button>
+        </div>
       ) : (
-        <DataTable 
-          data={products} 
-          columns={columns} 
-          keyExtractor={(item) => item.id} 
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {products.map((product) => {
+            // Helper to style the status badge
+            const getStatusStyle = (status: string) => {
+              switch(status) {
+                case 'APPROVED': return 'bg-success/10 text-success border-success/20';
+                case 'PENDING': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+                case 'REJECTED': return 'bg-error/10 text-error border-error/20';
+                default: return 'bg-gray-100 text-gray-700';
+              }
+            };
+
+            return (
+              <div key={product.id} className="relative flex flex-col">
+                <ProductCard 
+                  product={product} 
+                  renderBadge={(status) => (
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${getStatusStyle(status)}`}>
+                      {tCommon(`status.${status}`) || status}
+                    </span>
+                  )}
+                />
+
+                {/* If product is rejected, show the reason clearly to the merchant */}
+                {product.approval_status === 'REJECTED' && product.rejection_reason && (
+                  <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-lg flex items-start gap-2">
+                    <Info className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-red-700">Rejection Reason:</p>
+                      <p className="text-xs text-red-600 mt-0.5">{product.rejection_reason}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

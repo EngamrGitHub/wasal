@@ -87,6 +87,8 @@
     "save": "Save Changes",
     "cancel": "Cancel",
     "loading": "Loading...",
+    "no_image": "No Image",
+    "add_to_cart": "Add to Cart",
     "status": {
       "APPROVED": "Approved",
       "PENDING_APPROVAL": "Pending Admin Approval",
@@ -126,6 +128,21 @@
         "role": "Role",
         "joined": "Joined",
         "status": "Status"
+      }
+    },
+    "Products": {
+      "title": "Products Management",
+      "description": "Review and manage pending products from merchants."
+    },
+    "Orders": {
+      "title": "Orders Management",
+      "description": "Track and manage all orders across the platform.",
+      "columns": {
+        "order_id": "Order ID",
+        "customer": "Customer ID",
+        "total": "Total Amount",
+        "status": "Status",
+        "date": "Date"
       }
     }
   },

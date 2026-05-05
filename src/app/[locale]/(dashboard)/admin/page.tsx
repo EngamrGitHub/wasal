@@ -1,84 +1,122 @@
-'use client'
+'use client';
 
-import { Column, DataTable } from '@/src/components/admin/DataTable';
-import { StatsCard } from '@/src/components/admin/StatsCard';
-import { DollarSign, ShoppingBag, Users, Activity } from 'lucide-react'
-
-const mockRecentOrders = [
-  { id: '#ORD-001', customer: 'Ahmed Ali', date: '2023-10-25', total: '$120.00', status: 'Delivered' },
-  { id: '#ORD-002', customer: 'Sara Connor', date: '2023-10-24', total: '$45.00', status: 'Pending' },
-  { id: '#ORD-003', customer: 'John Doe', date: '2023-10-24', total: '$340.50', status: 'Shipped' },
-  { id: '#ORD-004', customer: 'Fatima Zahra', date: '2023-10-23', total: '$89.99', status: 'Delivered' },
-];
+import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { UserService, OrderService, StoreService } from '@/src/services/baseService';
+import { ProductService } from '@/src/services/productService';
+import { Users, ShoppingCart, Store as StoreIcon, AlertCircle } from 'lucide-react';
+import { Loader } from '@/src/components/ui/Loader';
 
 export default function AdminDashboardPage() {
-  const columns: Column<typeof mockRecentOrders[0]>[] = [
-    { header: 'Order ID', accessorKey: 'id' },
-    { header: 'Customer', accessorKey: 'customer' },
-    { header: 'Date', accessorKey: 'date' },
-    { header: 'Total', accessorKey: 'total' },
-    { 
-      header: 'Status', 
-      accessorKey: 'status',
-      cell: (item) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          item.status === 'Delivered' ? 'bg-success/10 text-success' :
-          item.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600' :
-          'bg-blue-500/10 text-blue-600'
-        }`}>
-          {item.status}
-        </span>
-      )
+  const t = useTranslations('Admin.Dashboard');
+  const tCommon = useTranslations('Common');
+
+  const [stats, setStats] = useState({
+    usersCount: 0,
+    ordersCount: 0,
+    storesCount: 0,
+    pendingProductsCount: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all counts in parallel for optimal performance
+        const [users, orders, stores, pendingProducts] = await Promise.all([
+          UserService.count().catch(() => 0),
+          OrderService.count().catch(() => 0),
+          StoreService.count('status', 'ACTIVE').catch(() => 0),
+          ProductService.getPendingProducts().then(res => res.length).catch(() => 0) // or add count method to ProductService
+        ]);
+
+        if (isMounted) {
+          setStats({
+            usersCount: users,
+            ordersCount: orders,
+            storesCount: stores,
+            pendingProductsCount: pendingProducts
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchStats();
+
+    return () => { isMounted = false; };
+  }, []);
+
+  const statCards = [
+    {
+      title: 'Total Users',
+      value: stats.usersCount,
+      icon: <Users className="w-8 h-8 text-blue-500" />,
+      bg: 'bg-blue-50',
+      textColor: 'text-blue-700'
     },
+    {
+      title: 'Total Orders',
+      value: stats.ordersCount,
+      icon: <ShoppingCart className="w-8 h-8 text-green-500" />,
+      bg: 'bg-green-50',
+      textColor: 'text-green-700'
+    },
+    {
+      title: 'Active Stores',
+      value: stats.storesCount,
+      icon: <StoreIcon className="w-8 h-8 text-purple-500" />,
+      bg: 'bg-purple-50',
+      textColor: 'text-purple-700'
+    },
+    {
+      title: 'Pending Products',
+      value: stats.pendingProductsCount,
+      icon: <AlertCircle className="w-8 h-8 text-yellow-500" />,
+      bg: 'bg-yellow-50',
+      textColor: 'text-yellow-700'
+    }
   ];
+
+  if (loading) {
+    return <Loader size="lg" text={tCommon('loading') || "Loading Dashboard..."} />;
+  }
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-black text-foreground">Dashboard Overview</h1>
-        <p className="text-gray-500 mt-2">Welcome back! Here's what's happening with your store today.</p>
+        <h1 className="text-3xl font-black text-foreground">{t('title') || 'Dashboard Overview'}</h1>
+        <p className="text-gray-500 mt-2">{t('description') || "Welcome to the admin dashboard. Here's a summary of the system."}</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard 
-          title="Total Revenue" 
-          value="$24,560.00" 
-          icon={DollarSign} 
-          trend={{ value: 12.5, isPositive: true }} 
-        />
-        <StatsCard 
-          title="Total Orders" 
-          value="1,240" 
-          icon={ShoppingBag} 
-          trend={{ value: 5.2, isPositive: true }} 
-        />
-        <StatsCard 
-          title="Active Users" 
-          value="892" 
-          icon={Users} 
-          trend={{ value: 1.4, isPositive: false }} 
-        />
-        <StatsCard 
-          title="Conversion Rate" 
-          value="3.2%" 
-          icon={Activity} 
-          trend={{ value: 0.8, isPositive: true }} 
-        />
+        {statCards.map((card, idx) => (
+          <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition">
+            <div className={`p-4 rounded-xl ${card.bg}`}>
+              {card.icon}
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm font-medium">{card.title}</p>
+              <h3 className={`text-3xl font-black mt-1 ${card.textColor}`}>{card.value}</h3>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Recent Orders Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-foreground">Recent Orders</h2>
-          <button className="text-primary font-semibold hover:underline text-sm">View All Orders</button>
+      {/* Placeholder for Recent Orders Table or Charts */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+        <h2 className="text-xl font-bold mb-4">System Health & Analytics</h2>
+        <div className="h-64 flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+          <p className="text-gray-400 font-medium">Chart Integration (e.g. Recharts) will go here</p>
         </div>
-        <DataTable 
-          data={mockRecentOrders} 
-          columns={columns} 
-          keyExtractor={(item) => item.id} 
-        />
       </div>
     </div>
-  )
+  );
 }
