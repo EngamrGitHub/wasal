@@ -1,20 +1,53 @@
-export type LocalizedString = {
+// UI-facing types that map to the Supabase database schema
+
+export interface LocalizedString {
   en: string;
   ar: string;
-};
+}
 
-// واجهة المنتج معدلة لدعم اللغتين (تعتمد على التصميم الجديد)
+export interface Category {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  image_url: string | null;
+}
+
+export interface ProductVariant {
+  id: string;
+  product_id: string;
+  sku: string | null;
+  price: number;
+  stock_quantity: number;
+  weight_kg: number;
+  image_url: string | null;
+  color_id: string | null;
+  size_id: string | null;
+  is_active: boolean;
+}
+
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  variant_id: string | null;
+  image_url: string;
+  is_main: boolean;
+}
+
 export interface Product {
   id: string;
-  store_id: string;
-  title: LocalizedString; // يدعم الإنجليزية والعربية
-  description: LocalizedString;
-  price: number;
-  stock: number;
-  images: string[];
+  store_id: string | null;
+  name_ar: string;
+  name_en: string;
+  description_ar: string | null;
+  description_en: string | null;
+  category_id: string | null;
+  category?: Category;
+  is_active: boolean;
   approval_status: 'PENDING' | 'APPROVED' | 'REJECTED';
   rejection_reason?: string | null;
   created_at: string;
+  product_variants: ProductVariant[];
+  product_images: ProductImage[];
 }
 
 export interface Store {

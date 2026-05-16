@@ -53,10 +53,7 @@ export default async function RootLayout({
       <body>
         <QueryProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            {/* <Navbar /> */}
-            <main className="min-h-screen">
-              {children}
-            </main>
+            {children}
           </NextIntlClientProvider>
         </QueryProvider>
       </body>

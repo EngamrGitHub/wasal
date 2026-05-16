@@ -6,6 +6,7 @@ import { BaseService } from '@/src/services/baseService';
 import { Product, OrderItem } from '@/src/types';
 import { ShoppingBag, Package, Star, Clock } from 'lucide-react';
 import { Loader } from '@/src/components/ui/Loader';
+import { ConnectionStatus } from '@/src/components/ui/ConnectionStatus';
 
 // We fetch exactly what belongs to this merchant (RLS will filter automatically based on auth)
 const MerchantProductService = new BaseService<Product>('products');
@@ -100,6 +101,8 @@ export default function MerchantDashboardPage() {
         <h1 className="text-3xl font-black text-foreground">{t('title') || 'Dashboard'}</h1>
         <p className="text-gray-500 mt-2">{t('description') || "Welcome back! Here is what's happening with your store today."}</p>
       </div>
+
+      <ConnectionStatus />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => (

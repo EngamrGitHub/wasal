@@ -5,7 +5,9 @@
     "merchants": "التجار",
     "admin": "الإدارة",
     "cart": "عربة التسوق",
-    "login": "تسجيل الدخول"
+    "login": "تسجيل الدخول",
+    "search_button": "بحث",
+    "language_label": "English"
   },
   "Hero": {
     "slides": {
@@ -22,6 +24,11 @@
         "subtitle": "جودة مضمونة وتوصيل سريع"
       }
     }
+  },
+  "Home": {
+    "featured_products": "منتجات مختارة",
+    "featured_products_desc": "اكتشف أحدث العروض والمنتجات المميزة لهذا الأسبوع",
+    "view_all": "عرض الكل"
   },
   "Footer": {
     "brand_description": "تجاريا هي منصتك الموثوقة للتجارة الإلكترونية في المنطقة، نجمع بين أفضل التجار وأحدث المنتجات لنوفر لك تجربة تسوق لا مثيل لها.",
@@ -97,11 +104,11 @@
       "PROCESSING": "قيد التجهيز",
       "PENDING": "قيد الانتظار",
       "CANCELLED": "ملغي",
-      "Active": "نشط",
-      "Suspended": "موقوف",
-      "Admin": "مسؤول",
-      "Merchant": "تاجر",
-      "Customer": "عميل"
+      "ACTIVE": "نشط",
+      "SUSPENDED": "موقوف",
+      "ADMIN": "مسؤول",
+      "MERCHANT": "تاجر",
+      "CUSTOMER": "عميل"
     }
   },
   "Admin": {

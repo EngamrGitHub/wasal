@@ -6,6 +6,7 @@ import { UserService, OrderService, StoreService } from '@/src/services/baseServ
 import { ProductService } from '@/src/services/productService';
 import { Users, ShoppingCart, Store as StoreIcon, AlertCircle } from 'lucide-react';
 import { Loader } from '@/src/components/ui/Loader';
+import { ConnectionStatus } from '@/src/components/ui/ConnectionStatus';
 
 export default function AdminDashboardPage() {
   const t = useTranslations('Admin.Dashboard');
@@ -95,6 +96,8 @@ export default function AdminDashboardPage() {
         <h1 className="text-3xl font-black text-foreground">{t('title') || 'Dashboard Overview'}</h1>
         <p className="text-gray-500 mt-2">{t('description') || "Welcome to the admin dashboard. Here's a summary of the system."}</p>
       </div>
+
+      <ConnectionStatus />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => (

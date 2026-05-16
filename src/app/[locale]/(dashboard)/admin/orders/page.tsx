@@ -19,12 +19,12 @@ export default function AdminOrdersPage() {
     { 
       header: t('columns.order_id') || 'Order ID', 
       accessorKey: 'id',
-      cell: (item) => <span className="text-xs text-gray-500 font-mono">{item.id.slice(0, 8)}...</span>
+      cell: (item) => <span className="text-xs text-gray-500 font-mono">{(item.id || '').slice(0, 8)}...</span>
     },
     { 
       header: t('columns.customer') || 'Customer', 
       accessorKey: 'user_id',
-      cell: (item) => <span className="text-xs text-gray-500">{item.user_id.slice(0, 8)}...</span>
+      cell: (item) => <span className="text-xs text-gray-500">{(item.user_id || '').slice(0, 8)}...</span>
     },
     { 
       header: t('columns.total') || 'Total', 

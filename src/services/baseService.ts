@@ -12,11 +12,15 @@ export class BaseService<T> {
   }
 
   protected get supabase() {
-    return createClient();
+    const client = createClient();
+    if (!client) {
+      throw new Error('Supabase client not initialized. Check your environment variables.');
+    }
+    return client;
   }
 
   async getAll(selectQuery: string = '*'): Promise<T[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from(this.tableName)
       .select(selectQuery);
       
@@ -25,7 +29,7 @@ export class BaseService<T> {
   }
 
   async count(column?: string, value?: any): Promise<number> {
-    let query = this.supabase
+    let query = (this.supabase as any)
       .from(this.tableName)
       .select('*', { count: 'exact', head: true });
 
@@ -40,7 +44,7 @@ export class BaseService<T> {
   }
 
   async getById(id: string): Promise<T> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from(this.tableName)
       .select('*')
       .eq('id', id)
@@ -51,7 +55,7 @@ export class BaseService<T> {
   }
 
   async getByFilter(column: string, value: any, selectQuery: string = '*'): Promise<T[]> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from(this.tableName)
       .select(selectQuery)
       .eq(column, value);
@@ -61,9 +65,9 @@ export class BaseService<T> {
   }
 
   async create(payload: Partial<T>): Promise<T> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from(this.tableName)
-      .insert(payload as any)
+      .insert(payload)
       .select()
       .single();
       
@@ -72,9 +76,9 @@ export class BaseService<T> {
   }
 
   async update(id: string, payload: Partial<T>): Promise<T> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from(this.tableName)
-      .update(payload as any)
+      .update(payload)
       .eq('id', id)
       .select()
       .single();
@@ -84,7 +88,7 @@ export class BaseService<T> {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase
+    const { error } = await (this.supabase as any)
       .from(this.tableName)
       .delete()
       .eq('id', id);
@@ -94,9 +98,8 @@ export class BaseService<T> {
 }
 
 // إنشاء نُسخ جاهزة للاستخدام لكل جدول في النظام
-import { User, Store, Order, Product } from '@/src/types';
+import { User, Store, Order } from '@/src/types';
 
-export const UserService = new BaseService<User>('users');
+export const UserService = new BaseService<User>('profiles');
 export const StoreService = new BaseService<Store>('stores');
 export const OrderService = new BaseService<Order>('orders');
-// ProductService extends BaseService but adds custom logic for approval

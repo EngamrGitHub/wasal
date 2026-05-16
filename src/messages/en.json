@@ -5,7 +5,9 @@
     "merchants": "Merchants",
     "admin": "Management",
     "cart": "Shopping Cart",
-    "login": "Login"
+    "login": "Login",
+    "search_button": "Search",
+    "language_label": "العربية"
   },
   "Hero": {
     "slides": {
@@ -22,6 +24,11 @@
         "subtitle": "Guaranteed quality and fast delivery"
       }
     }
+  },
+  "Home": {
+    "featured_products": "Featured Products",
+    "featured_products_desc": "Discover the latest deals and top picks of the week",
+    "view_all": "View All"
   },
   "Footer": {
     "brand_description": "TUJARIA is your trusted e-commerce platform in the region, bringing together top vendors and latest products for an unmatched shopping experience.",
@@ -97,11 +104,11 @@
       "PROCESSING": "Processing",
       "PENDING": "Pending",
       "CANCELLED": "Cancelled",
-      "Active": "Active",
-      "Suspended": "Suspended",
-      "Admin": "Admin",
-      "Merchant": "Merchant",
-      "Customer": "Customer"
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "ADMIN": "Admin",
+      "MERCHANT": "Merchant",
+      "CUSTOMER": "Customer"
     }
   },
   "Admin": {

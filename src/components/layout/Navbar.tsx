@@ -74,7 +74,7 @@ export function Navbar() {
               className={`w-full h-12 bg-white border-2 border-primary/20 rounded-full ${locale === 'ar' ? 'pr-6 pl-24' : 'pl-6 pr-24'} text-sm focus:outline-none focus:border-primary transition-all`}
             />
             <button className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-6 lg:px-8 bg-primary text-white rounded-full font-bold text-sm hover:opacity-90 transition-opacity`}>
-              {locale === 'ar' ? 'بحث' : 'Search'}
+              {t('search_button')}
             </button>
           </div>
         </div>
@@ -112,7 +112,7 @@ export function Navbar() {
               </span>
             </div>
             <span className="text-[12px] font-bold text-gray-600 group-hover:text-primary">
-              {locale === 'ar' ? 'English' : 'العربية'}
+              {t('language_label')}
             </span>
           </button>
         </div>
