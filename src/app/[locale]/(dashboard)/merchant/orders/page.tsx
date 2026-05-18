@@ -24,6 +24,7 @@ interface MerchantOrderItemView {
     title: { en: string; ar: string };
     images: string[];
   };
+  commission_amount?: number;
 }
 
 const MerchantOrderItemsService = new BaseService<MerchantOrderItemView>('order_items');
