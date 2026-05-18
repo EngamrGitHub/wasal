@@ -1,7 +1,30 @@
 const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
 
-const supabaseUrl = 'https://uvuosxwngltobuobhkwb.supabase.co';
-const supabaseKey = 'sb_publishable_u1M2gSV2wtCnggxW6BpBjg_4XlvvsK-';
+// Load environment variables from .env.local manually
+if (fs.existsSync('.env.local')) {
+  const envContent = fs.readFileSync('.env.local', 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+    const [key, ...val] = trimmed.split('=');
+    if (key) {
+      process.env[key.trim()] = val.join('=').trim();
+    }
+  });
+}
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://uvuosxwngltobuobhkwb.supabase.co';
+// Use the service role key if available to bypass RLS, otherwise fallback to public key
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_u1M2gSV2wtCnggxW6BpBjg_4XlvvsK-';
+
+console.log('Using Supabase URL:', supabaseUrl);
+if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.log('🔑 Service Role Key detected! RLS will be bypassed.');
+} else {
+  console.log('⚠️ Public Anon Key being used. Seeding might fail if RLS is enabled.');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const colors = [

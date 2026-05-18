@@ -48,20 +48,18 @@ export default function AddProductPage() {
   // Fetch ERD Reference Data
   useEffect(() => {
     async function loadReferenceData() {
-      const supabase = createClient() as any;
-      if (!supabase) return;
-      
-      const [catsRes, colorsRes, sizeTypesRes, sizesRes] = await Promise.all([
-        supabase.from('categories').select('id, name_en, name_ar'),
-        supabase.from('colors').select('id, name, hex_code'),
-        supabase.from('size_types').select('id, name'),
-        supabase.from('sizes').select('id, name, size_type_id')
-      ]);
-
-      if (catsRes.data) setCategories(catsRes.data);
-      if (colorsRes.data) setColors(colorsRes.data);
-      if (sizeTypesRes.data) setSizeTypes(sizeTypesRes.data);
-      if (sizesRes.data) setSizes(sizesRes.data);
+      try {
+        const res = await fetch('/api/reference');
+        if (!res.ok) throw new Error('Failed to fetch reference data');
+        const data = await res.json();
+        
+        if (data.categories) setCategories(data.categories);
+        if (data.colors) setColors(data.colors);
+        if (data.sizeTypes) setSizeTypes(data.sizeTypes);
+        if (data.sizes) setSizes(data.sizes);
+      } catch (err) {
+        console.error('Error loading reference data from API:', err);
+      }
     }
     loadReferenceData();
   }, []);
