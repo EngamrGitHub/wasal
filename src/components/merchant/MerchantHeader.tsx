@@ -1,8 +1,9 @@
 'use client'
 
-import { Bell, Search, Menu, Store } from 'lucide-react'
+import { Search, Menu, Store } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useState } from 'react'
+import { NotificationDropdown } from '../layout/NotificationDropdown'
 
 export function MerchantHeader() {
   const t = useTranslations('Merchant.Header');
@@ -29,10 +30,7 @@ export function MerchantHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="relative p-2 text-gray-500 hover:text-primary transition-colors rounded-full hover:bg-primary/5">
-          <Bell className="w-6 h-6" />
-          {/* Badge */}
-        </button>
+        <NotificationDropdown />
         <div className="flex items-center gap-3 border-l border-gray-100 pl-4 ml-2">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
             <Store className="w-5 h-5" />

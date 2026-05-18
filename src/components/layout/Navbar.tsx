@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ShoppingCart, Search, Home, Store, Settings2, Menu, X } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { usePathname, useRouter } from 'next/navigation'
+import { NotificationDropdown } from './NotificationDropdown'
 
 export function Navbar() {
   const t = useTranslations('Navbar');
@@ -12,6 +13,16 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/${locale}?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push(`/${locale}`);
+    }
+  };
 
   const toggleLanguage = () => {
     const newLocale = locale === 'ar' ? 'en' : 'ar';
@@ -66,18 +77,20 @@ export function Navbar() {
         </div>
 
         {/* Search Bar */}
-        <div className="w-full lg:flex-1 max-w-2xl order-3 lg:order-0">
+        <form onSubmit={handleSearchSubmit} className="w-full lg:flex-1 max-w-2xl order-3 lg:order-0">
           <div className="relative flex items-center">
             <input 
               type="text" 
-              placeholder={t('search_placeholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('search_placeholder') || 'Search...'}
               className={`w-full h-12 bg-white border-2 border-primary/20 rounded-full ${locale === 'ar' ? 'pr-6 pl-24' : 'pl-6 pr-24'} text-sm focus:outline-none focus:border-primary transition-all`}
             />
-            <button className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-6 lg:px-8 bg-primary text-white rounded-full font-bold text-sm hover:opacity-90 transition-opacity`}>
-              {t('search_button')}
+            <button type="submit" className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-6 lg:px-8 bg-primary text-white rounded-full font-bold text-sm hover:opacity-90 transition-opacity`}>
+              {t('search_button') || 'Search'}
             </button>
           </div>
-        </div>
+        </form>
 
         {/* Desktop Actions Icons */}
         <div className="hidden lg:flex items-center gap-6">
@@ -100,6 +113,14 @@ export function Navbar() {
               </span>
             </Link>
           ))}
+
+          {/* Desktop Notifications Bell */}
+          <div className="flex flex-col items-center gap-1">
+            <NotificationDropdown />
+            <span className="text-[12px] font-bold text-gray-600 whitespace-nowrap">
+              {locale === 'ar' ? 'الإشعارات' : 'Alerts'}
+            </span>
+          </div>
           
           {/* Desktop Language Toggle */}
           <button 
@@ -112,7 +133,7 @@ export function Navbar() {
               </span>
             </div>
             <span className="text-[12px] font-bold text-gray-600 group-hover:text-primary">
-              {t('language_label')}
+              {t('language_label') || 'Language'}
             </span>
           </button>
         </div>

@@ -9,6 +9,7 @@ import { ProductService } from '@/src/services/productService'; // We will exten
 import { Loader } from '@/src/components/ui/Loader';
 import { Plus, Info } from 'lucide-react';
 import { BaseService } from '@/src/services/baseService';
+import { Link } from '@/src/i18n/routing';
 
 // We can use the Generic BaseService directly for products here 
 // because Supabase Row Level Security (RLS) will automatically filter by Merchant's Store!
@@ -32,10 +33,10 @@ export default function MerchantProductsPage() {
           <h1 className="text-3xl font-black text-foreground">{t('title') || 'My Products'}</h1>
           <p className="text-gray-500 mt-2">{t('description') || 'Manage your products and monitor their approval status.'}</p>
         </div>
-        <button className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors shadow-sm">
+        <Link href="/merchant/products/add" className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors shadow-sm">
           <Plus className="w-5 h-5" />
           {t('add_button') || 'Add Product'}
-        </button>
+        </Link>
       </div>
 
       {error ? (
@@ -51,9 +52,9 @@ export default function MerchantProductsPage() {
             <h3 className="text-lg font-bold text-gray-900">{t('empty_title') || 'No Products Yet'}</h3>
             <p className="text-gray-500 max-w-sm mt-1">{t('empty_desc') || 'Start adding products to reach more customers.'}</p>
           </div>
-          <button className="mt-2 bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
+          <Link href="/merchant/products/add" className="mt-2 bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition inline-block">
              {t('empty_btn') || 'Add Your First Product'}
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

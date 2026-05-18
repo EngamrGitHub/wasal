@@ -89,9 +89,9 @@ export function ProductCard({
             <span className="text-xs text-gray-400 mb-0.5">Price</span>
             <span className="text-lg font-black text-gray-900">${displayPrice.toFixed(2)}</span>
           </div>
-          <button className="bg-primary/10 hover:bg-primary text-primary hover:text-white p-3 rounded-xl transition-colors">
+          <Link href={`/cart?productId=${productId}`} className="bg-primary/10 hover:bg-primary text-primary hover:text-white p-3 rounded-xl transition-colors">
             <ShoppingCart className="w-5 h-5" />
-          </button>
+          </Link>
         </div>
       </div>
     </div>

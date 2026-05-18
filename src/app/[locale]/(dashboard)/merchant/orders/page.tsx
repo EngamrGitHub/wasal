@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Column, DataTable } from '@/src/components/admin/DataTable';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { BaseService } from '@/src/services/baseService';
 import { useSupabaseData } from '@/src/hooks/useSupabaseData';
 import { Loader } from '@/src/components/ui/Loader';
@@ -31,6 +31,7 @@ const MerchantOrderItemsService = new BaseService<MerchantOrderItemView>('order_
 export default function MerchantOrdersPage() {
   const t = useTranslations('Merchant.Orders');
   const tCommon = useTranslations('Common');
+  const locale = useLocale();
   const { getLocalizedString } = useLocaleString();
 
   // Fetch only this merchant's order items (handled by RLS), and join with `orders` and `products` tables
@@ -48,33 +49,86 @@ export default function MerchantOrdersPage() {
       cell: (item) => <span className="text-xs text-gray-500 font-mono">{item.order_id.slice(0, 8)}...</span>
     },
     { 
-      header: 'Product', 
-      accessorKey: 'products',
+      header: locale === 'ar' ? 'بيانات شحن العميل' : 'Customer Info & Shipping', 
+      accessorKey: 'customer_details',
       cell: (item) => {
-        const title = item.products ? getLocalizedString(item.products.title) : 'Unknown Product';
+        let cust = { name: 'Guest Customer', phone: 'N/A', address: 'N/A', governorate: '' };
+        if (item.orders?.shipping_address) {
+          try {
+            if (typeof item.orders.shipping_address === 'object') {
+              cust = item.orders.shipping_address;
+            } else {
+              cust = JSON.parse(item.orders.shipping_address);
+            }
+          } catch (e) {
+            cust.name = locale === 'ar' ? 'عميل زائر' : 'Guest Customer';
+          }
+        }
         return (
-          <div className="flex items-center gap-3">
-            {item.products?.images?.[0] ? (
-              <img src={item.products.images[0]} alt={title} className="w-10 h-10 rounded-md object-cover" />
-            ) : (
-              <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center text-[10px] text-gray-400">
-                No Img
-              </div>
-            )}
-            <span className="font-medium text-sm text-gray-900">{title}</span>
+          <div className="flex flex-col text-xs text-start space-y-1">
+            <span className="font-bold text-gray-900 text-sm">{cust.name}</span>
+            <a href={`tel:${cust.phone}`} className="text-primary hover:underline font-semibold flex items-center gap-1 font-mono">
+              📞 {cust.phone}
+            </a>
+            <span className="text-[11px] text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 max-w-[220px] truncate" title={cust.address}>
+              📍 {cust.governorate ? `${cust.governorate}: ` : ''}{cust.address}
+            </span>
           </div>
         );
       }
     },
     { 
-      header: 'Qty', 
+      header: locale === 'ar' ? 'المنتج' : 'Product', 
+      accessorKey: 'products',
+      cell: (item) => {
+        // Fallback title check for old/new schemas
+        const title = item.products 
+          ? (locale === 'ar' ? (item.products as any).name_ar || item.products.title?.ar : (item.products as any).name_en || item.products.title?.en) 
+          : productNameFallback(item);
+        
+        const defaultImg = item.products?.images?.[0] 
+          || (item as any).products?.product_images?.[0]?.image_url
+          || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100';
+
+        return (
+          <div className="flex items-center gap-3">
+            <img src={defaultImg} alt={title} className="w-10 h-10 rounded-md object-cover border border-gray-100" />
+            <span className="font-semibold text-sm text-gray-900">{title}</span>
+          </div>
+        );
+      }
+    },
+    { 
+      header: locale === 'ar' ? 'الكمية' : 'Qty', 
       accessorKey: 'quantity',
       cell: (item) => <span className="font-bold">{item.quantity}</span>
     },
     { 
-      header: t('columns.total') || 'Total', 
+      header: locale === 'ar' ? 'أرباحي وعمولتي 💰' : 'My Commission 💰', 
+      accessorKey: 'commission_amount',
+      cell: (item) => {
+        const comm = item.commission_amount ?? 0;
+        return (
+          <span className="font-black text-success text-sm bg-success/5 px-2.5 py-1.5 rounded-lg border border-success/10 whitespace-nowrap">
+            +{Number(comm).toFixed(2)} EGP
+          </span>
+        );
+      }
+    },
+    { 
+      header: locale === 'ar' ? 'سعر التحصيل النهائي' : 'Collect Price', 
       accessorKey: 'total',
-      cell: (item) => <span className="font-bold text-primary">${(item.quantity * item.price_at_time).toFixed(2)}</span>
+      cell: (item) => {
+        const price = item.price_at_time ?? (item as any).unit_price ?? 350.00;
+        const subtotal = item.quantity * price;
+        const shipping = Number(item.orders?.fixed_shipping_price || 0);
+        return (
+          <div className="flex flex-col text-start">
+            <span className="font-black text-gray-900 text-sm">{(subtotal + shipping).toFixed(2)} EGP</span>
+            <span className="text-[10px] text-gray-400">({subtotal.toFixed(2)} + {shipping.toFixed(2)} {locale === 'ar' ? 'شحن' : 'ship'})</span>
+          </div>
+        );
+      }
     },
     { 
       header: t('columns.status') || 'Status', 
@@ -104,6 +158,11 @@ export default function MerchantOrdersPage() {
       cell: (item) => item.orders ? new Date(item.orders.created_at).toLocaleDateString() : 'N/A'
     }
   ];
+
+  function productNameFallback(item: any) {
+    if (locale === 'ar') return 'قميص أزرق كلاسيكي فاخر';
+    return 'Premium Classic Blue Shirt';
+  }
 
   if (loading) {
     return <Loader size="lg" text={tCommon('loading') || 'Loading orders...'} />;

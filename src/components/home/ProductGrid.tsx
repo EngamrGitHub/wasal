@@ -1,11 +1,12 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import { ProductCard } from '@/src/components/ui/ProductCard'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { ProductService } from '@/src/services/productService'
-import { Product } from '@/src/types'
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { ProductCard } from '@/src/components/ui/ProductCard';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { ProductService } from '@/src/services/productService';
+import { Product } from '@/src/types';
 
 // Placeholder data for fallback
 const dummyProducts: Partial<Product>[] = [
@@ -39,25 +40,27 @@ const dummyProducts: Partial<Product>[] = [
   }
 ];
 
-export function ProductGrid() {
-  const t = useTranslations('Home')
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+function ProductGridContent() {
+  const t = useTranslations('Home');
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search') || undefined;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        setLoading(true)
-        const data = await ProductService.getApprovedProducts()
-        setProducts(data)
+        setLoading(true);
+        const data = await ProductService.getApprovedProducts(searchQuery);
+        setProducts(data);
       } catch (error) {
-        console.error("Failed to fetch products from Supabase, using dummy data", error)
+        console.error("Failed to fetch products from Supabase, using dummy data", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    loadProducts()
-  }, [])
+    };
+    loadProducts();
+  }, [searchQuery]);
 
   return (
     <section className="container mx-auto px-4 py-12">
@@ -79,7 +82,7 @@ export function ProductGrid() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
            {[1, 2, 3, 4].map((i) => (
-             <div key={i} className="h-80 bg-gray-100 rounded-2xl"></div>
+             <div key={i} className="h-80 bg-gray-100 rounded-2xl animate-pulse"></div>
            ))}
         </div>
       ) : (
@@ -91,5 +94,20 @@ export function ProductGrid() {
         </div>
       )}
     </section>
-  )
+  );
+}
+
+export function ProductGrid() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-12 animate-pulse">
+        <div className="h-10 w-48 bg-gray-100 rounded mb-8"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-80 bg-gray-50 rounded-2xl"></div>)}
+        </div>
+      </div>
+    }>
+      <ProductGridContent />
+    </Suspense>
+  );
 }
