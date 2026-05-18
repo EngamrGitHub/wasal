@@ -19,6 +19,7 @@ interface MerchantOrderItemView {
     created_at: string;
     shipping_address: any;
     user_id: string;
+    fixed_shipping_price?: number;
   };
   products: {
     title: { en: string; ar: string };

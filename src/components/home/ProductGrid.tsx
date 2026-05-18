@@ -40,10 +40,11 @@ const dummyProducts: Partial<Product>[] = [
   }
 ];
 
-function ProductGridContent() {
+function ProductGridContent({ search }: { search?: string }) {
   const t = useTranslations('Home');
   const searchParams = useSearchParams();
-  const searchQuery = searchParams.get('search') || undefined;
+  // Use prop-based search if provided (server-side), otherwise fallback to URL param
+  const searchQuery = search || searchParams.get('search') || undefined;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -97,7 +98,7 @@ function ProductGridContent() {
   );
 }
 
-export function ProductGrid() {
+export function ProductGrid({ search }: { search?: string }) {
   return (
     <Suspense fallback={
       <div className="container mx-auto px-4 py-12 animate-pulse">
@@ -107,7 +108,7 @@ export function ProductGrid() {
         </div>
       </div>
     }>
-      <ProductGridContent />
+      <ProductGridContent search={search} />
     </Suspense>
   );
 }

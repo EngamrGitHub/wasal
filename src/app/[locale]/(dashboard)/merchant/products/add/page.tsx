@@ -20,9 +20,9 @@ const getProductSchema = (t: any) => z.object({
   description_en: z.string().optional(),
   category_id: z.string().min(1, 'Category is required'),
   variants: z.array(z.object({
-    price: z.preprocess((val) => Number.isNaN(val) ? undefined : val, z.number({ required_error: 'السعر مطلوب' }).positive()),
-    stock_quantity: z.preprocess((val) => Number.isNaN(val) ? undefined : val, z.number({ required_error: 'الكمية مطلوبة' }).int().nonnegative()),
-    weight_kg: z.preprocess((val) => Number.isNaN(val) ? undefined : val, z.number().optional()),
+    price: z.number({ message: 'السعر مطلوب' }).positive(),
+    stock_quantity: z.number({ message: 'الكمية مطلوبة' }).int().nonnegative(),
+    weight_kg: z.number().nullable().optional(),
     sku: z.string().optional(),
     color_id: z.string().nullable().optional(),
     size_id: z.string().nullable().optional(),
@@ -67,10 +67,11 @@ export default function AddProductPage() {
   }, []);
 
   const productSchema = getProductSchema((key: string) => t(key));
-  type ProductFormData = z.infer<typeof productSchema>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type ProductFormData = any;
 
   const { register, control, handleSubmit, watch, formState: { errors } } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       variants: [{ price: 0, stock_quantity: 0 }] // Initial empty variant
     }
@@ -162,7 +163,7 @@ export default function AddProductPage() {
         description_ar: data.description_ar,
         description_en: data.description_en || data.description_ar, // Fallback to Arabic if English is missing
         category_id: data.category_id,
-        variants: data.variants.map(v => ({
+        variants: data.variants.map((v: any) => ({
           price: v.price,
           stock_quantity: v.stock_quantity,
           weight_kg: v.weight_kg,
@@ -220,7 +221,7 @@ export default function AddProductPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary outline-none rtl text-right"
                   placeholder="تيشيرت أوفرسايز..."
                 />
-                {errors.name_ar && <p className="text-error text-sm mt-1">{errors.name_ar.message}</p>}
+                {errors.name_ar && <p className="text-error text-sm mt-1">{(errors.name_ar as any)?.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">الوصف بالعربية *</label>
@@ -229,7 +230,7 @@ export default function AddProductPage() {
                   rows={4}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary outline-none resize-none rtl text-right"
                 />
-                {errors.description_ar && <p className="text-error text-sm mt-1">{errors.description_ar.message}</p>}
+                {errors.description_ar && <p className="text-error text-sm mt-1">{(errors.description_ar as any)?.message}</p>}
               </div>
             </div>
 
@@ -242,7 +243,7 @@ export default function AddProductPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary outline-none ltr text-left"
                   placeholder="Oversized T-shirt..."
                 />
-                {errors.name_en && <p className="text-error text-sm mt-1">{errors.name_en.message}</p>}
+                {errors.name_en && <p className="text-error text-sm mt-1">{(errors.name_en as any)?.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Description EN *</label>
@@ -251,7 +252,7 @@ export default function AddProductPage() {
                   rows={4}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary outline-none resize-none ltr text-left"
                 />
-                {errors.description_en && <p className="text-error text-sm mt-1">{errors.description_en.message}</p>}
+                {errors.description_en && <p className="text-error text-sm mt-1">{(errors.description_en as any)?.message}</p>}
               </div>
             </div>
 
@@ -269,7 +270,7 @@ export default function AddProductPage() {
                     </option>
                   ))}
                 </select>
-                {errors.category_id && <p className="text-error text-sm mt-1">{errors.category_id.message}</p>}
+                {errors.category_id && <p className="text-error text-sm mt-1">{(errors.category_id as any)?.message}</p>}
               </div>
 
               <div>
@@ -388,7 +389,7 @@ export default function AddProductPage() {
                       {...register(`variants.${index}.price`, { valueAsNumber: true })}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm"
                     />
-                    {errors.variants?.[index]?.price && <p className="text-error text-xs mt-1">{errors.variants[index]?.price?.message}</p>}
+                    {(errors as any).variants?.[index]?.price && <p className="text-error text-xs mt-1">{(errors as any).variants?.[index]?.price?.message}</p>}
                   </div>
 
                   {/* Stock */}
