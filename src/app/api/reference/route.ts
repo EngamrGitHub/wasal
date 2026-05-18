@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+// Trigger automatic redeployment with updated environment variables on Vercel
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
