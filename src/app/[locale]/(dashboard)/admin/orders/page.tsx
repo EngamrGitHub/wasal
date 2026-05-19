@@ -203,6 +203,7 @@ export default function AdminOrdersPage() {
               const storeName = locale === 'ar' ? m.store_name_ar : m.store_name_en;
               
               const colorName = sub.variant?.colors?.name;
+              const colorHex = sub.variant?.colors?.hex_code;
               const sizeName = sub.variant?.sizes?.name;
               const defaultImg = sub.variant?.image_url
                 || sub.products?.product_images?.find((img: any) => img.is_main)?.image_url
@@ -226,7 +227,17 @@ export default function AdminOrdersPage() {
                   {/* Attributes */}
                   {(colorName || sizeName) && (
                     <div className="text-[10px] text-gray-500 font-semibold flex items-center gap-2.5 bg-white p-1.5 rounded-lg border border-gray-50">
-                      {colorName && <span className="flex items-center gap-1">🎨 {colorName}</span>}
+                      {colorName && (
+                        <span className="flex items-center gap-1">
+                          {colorHex && (
+                            <span 
+                              className="w-3 h-3 rounded-full border border-gray-200 shadow-sm inline-block" 
+                              style={{ backgroundColor: colorHex }}
+                            />
+                          )}
+                          {!colorHex && "🎨"} {colorName}
+                        </span>
+                      )}
                       {sizeName && <span className="flex items-center gap-1">📏 {sizeName}</span>}
                     </div>
                   )}

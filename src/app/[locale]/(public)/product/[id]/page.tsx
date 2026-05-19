@@ -35,18 +35,13 @@ export default function ProductDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        const supabase = createClient();
-        if (!supabase) throw new Error('Supabase client not initialized');
-
-        // Fetch product with variants and images
-        const { data: productData, error: productError } = await supabase
-          .from('products')
-          .select('*, product_variants(*), product_images(*)')
-          .eq('id', id)
-          .single();
-
-        if (productError) throw productError;
-        if (!productData) throw new Error('Product not found');
+        // Fetch product with variants and images via API to bypass RLS on colors/sizes
+        const response = await fetch(`/api/products/${id}`);
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || 'Product not found');
+        }
+        const productData = await response.json();
 
         const typedProduct = productData as unknown as Product;
         setProduct(typedProduct);
@@ -64,6 +59,7 @@ export default function ProductDetailPage() {
 
         // Fetch category separately for robustness
         if (typedProduct.category_id) {
+          const supabase = createClient();
           const { data: catData } = await supabase
             .from('categories')
             .select('*')
@@ -281,6 +277,9 @@ export default function ProductDetailPage() {
                 <div className="flex flex-wrap gap-3">
                   {product.product_variants.map((v) => {
                     const isSelected = selectedVariant?.id === v.id;
+                    const colorHex = v.colors?.hex_code;
+                    const colorName = v.colors?.name;
+                    const sizeName = v.sizes?.name;
                     return (
                       <button
                         key={v.id}
@@ -291,9 +290,18 @@ export default function ProductDetailPage() {
                             : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
                         }`}
                       >
-                        <span className="text-xs text-gray-400 font-semibold mb-0.5">
-                          {v.sku || `Option ${v.id.substring(0, 4)}`}
-                        </span>
+                        <div className="flex items-center gap-2 mb-1">
+                          {colorHex && (
+                            <span 
+                              className="w-4 h-4 rounded-full border border-gray-200 shadow-sm shrink-0" 
+                              style={{ backgroundColor: colorHex }} 
+                              title={colorName || ''}
+                            />
+                          )}
+                          <span className="text-xs text-gray-500 font-semibold truncate max-w-[100px]">
+                            {colorName || sizeName ? [colorName, sizeName].filter(Boolean).join(' - ') : (v.sku || `Option ${v.id.substring(0, 4)}`)}
+                          </span>
+                        </div>
                         <span className="text-base text-gray-900">{v.price.toFixed(2)} {isRtl ? 'ج.م' : 'EGP'}</span>
                       </button>
                     );

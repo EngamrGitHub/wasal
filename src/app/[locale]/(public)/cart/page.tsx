@@ -113,15 +113,11 @@ function CartCheckoutContent() {
           }
         }
 
-        // Fetch product with variants and images
-        const { data: prodData } = await supabase
-          .from('products')
-          .select('*, product_variants(*), product_images(*)')
-          .eq('id', cartItem.productId)
-          .limit(1);
-
-        if (prodData && prodData.length > 0) {
-          setProduct(prodData[0]);
+        // Fetch product with variants and images via API to bypass RLS
+        const response = await fetch(`/api/products/${cartItem.productId}`);
+        if (response.ok) {
+          const prodData = await response.json();
+          setProduct(prodData);
         } else {
           setProduct(null);
         }
@@ -357,7 +353,20 @@ function CartCheckoutContent() {
                 />
                 <div className="flex-1 space-y-1">
                   <h4 className="font-bold text-gray-900 text-lg">{productName}</h4>
-                  <p className="text-xs text-gray-400 mb-2">SKU: {selectedVariant?.sku || product?.product_variants?.[0]?.sku || 'SHIRT-BLUE-01'}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    {selectedVariant?.colors?.hex_code && (
+                      <span 
+                        className="w-4 h-4 rounded-full border border-gray-200 shadow-sm" 
+                        style={{ backgroundColor: selectedVariant.colors.hex_code }}
+                        title={selectedVariant.colors.name}
+                      />
+                    )}
+                    <p className="text-xs text-gray-500 font-medium">
+                      {selectedVariant?.colors?.name || selectedVariant?.sizes?.name 
+                        ? [selectedVariant?.colors?.name, selectedVariant?.sizes?.name].filter(Boolean).join(' - ')
+                        : `SKU: ${selectedVariant?.sku || product?.product_variants?.[0]?.sku || 'SHIRT-BLUE-01'}`}
+                    </p>
+                  </div>
                   
                   {/* Clean Customer Price */}
                   <div className="flex items-center gap-2">
