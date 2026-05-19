@@ -23,6 +23,15 @@ export interface ProductVariant {
   color_id: string | null;
   size_id: string | null;
   is_active: boolean;
+  colors?: {
+    id?: string;
+    name: string;
+    hex_code: string;
+  } | null;
+  sizes?: {
+    id?: string;
+    name: string;
+  } | null;
 }
 
 export interface ProductImage {

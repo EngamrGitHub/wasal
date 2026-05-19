@@ -12,8 +12,16 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand Section */}
           <div className="space-y-6">
-            <Link href={`/${locale}`} className="text-2xl font-bold tracking-tighter text-primary">
-              TUJARIA
+            <Link href={`/${locale}`} className="flex items-center gap-2 text-2xl font-bold tracking-tighter text-primary">
+              <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-gray-100 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/logo.jpg" 
+                  alt="Wesal Logo" 
+                  className="absolute inset-x-0 top-0 w-full h-[165%] object-cover object-top"
+                />
+              </div>
+              <span>{locale === 'ar' ? 'وصال' : 'Wesal'}</span>
             </Link>
             <p className="text-muted text-sm leading-relaxed max-w-xs">
               {t('brand_description')}
@@ -67,14 +75,14 @@ export function Footer() {
               </li>
               <li className="flex items-center space-x-3 space-x-reverse text-muted">
                 <Mail className="w-5 h-5 text-accent shrink-0" />
-                <span>support@tujaria.com</span>
+                <span>support@wesal.com</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-muted">
-          <p>© 2026 TUJARIA. All rights reserved.</p>
+          <p>© 2026 {locale === 'ar' ? 'وصال. جميع الحقوق محفوظة.' : 'Wesal. All rights reserved.'}</p>
           <div className="flex items-center space-x-6 space-x-reverse mt-4 md:mt-0">
             <Link href="#" className="hover:text-accent transition-colors">{t('privacy_policy')}</Link>
             <Link href="#" className="hover:text-accent transition-colors">{t('terms_conditions')}</Link>

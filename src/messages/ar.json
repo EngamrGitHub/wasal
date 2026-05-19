@@ -31,7 +31,7 @@
     "view_all": "عرض الكل"
   },
   "Footer": {
-    "brand_description": "تجاريا هي منصتك الموثوقة للتجارة الإلكترونية في المنطقة، نجمع بين أفضل التجار وأحدث المنتجات لنوفر لك تجربة تسوق لا مثيل لها.",
+    "brand_description": "وصال هي منصتك الموثوقة للتجارة الإلكترونية في المنطقة، نجمع بين أفضل التجار وأحدث المنتجات لنوفر لك تجربة تسوق لا مثيل لها.",
     "quick_links": "روابط سريعة",
     "about_us": "من نحن",
     "shop_now": "تسوق الآن",
@@ -59,7 +59,7 @@
     "no_account": "ليس لديك حساب؟",
     "register_link": "إنشاء حساب جديد",
     "register_title": "إنشاء حساب",
-    "register_subtitle": "انضم إلى مجتمع تجاريا وابدأ التسوق اليوم",
+    "register_subtitle": "انضم إلى مجتمع وصال وابدأ التسوق اليوم",
     "full_name": "الاسم الكامل",
     "full_name_placeholder": "محمد علي",
     "phone": "رقم الهاتف",
@@ -163,7 +163,7 @@
     "Header": {
       "search_placeholder": "...البحث",
       "store_name": "اسم متجري",
-      "store_email": "merchant@tujaria.com"
+      "store_email": "merchant@wesal.com"
     },
     "Dashboard": {
       "title": "لوحة التحكم",

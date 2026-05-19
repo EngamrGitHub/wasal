@@ -9,7 +9,8 @@ export const ProductService = {
     let query = supabase
       .from('products')
       .select('*, product_variants(*), product_images(*)')
-      .eq('approval_status', 'APPROVED');
+      .eq('approval_status', 'APPROVED')
+      .eq('is_active', true);
 
     if (search) {
       query = query.or(`name_en.ilike.%${search}%,name_ar.ilike.%${search}%`);
@@ -57,6 +58,34 @@ export const ProductService = {
   },
 
   /**
+   * Approve a product with custom markup and shipping values (Admin Action)
+   */
+  async approveProductWithMarkup(productId: string, variants: { id: string, price: number }[]): Promise<void> {
+    const supabase = createClient() as any;
+    if (!supabase) throw new Error('Supabase URL/Key missing');
+
+    // 1. Update product status
+    const { data: prodData, error: prodError } = await supabase
+      .from('products')
+      .update({ approval_status: 'APPROVED', rejection_reason: null, is_active: true })
+      .eq('id', productId)
+      .select();
+
+    if (prodError) throw new Error(prodError.message);
+    if (!prodData || prodData.length === 0) throw new Error('Failed to update product due to RLS policies.');
+
+    // 2. Update variant prices in batch
+    const updatePromises = variants.map(v => 
+      supabase
+        .from('product_variants')
+        .update({ price: v.price })
+        .eq('id', v.id)
+    );
+
+    await Promise.all(updatePromises);
+  },
+
+  /**
    * Reject a product with reason (Admin Action)
    */
   async rejectProduct(productId: string, reason: string): Promise<void> {
@@ -80,6 +109,7 @@ export const ProductService = {
 
     // Fetch the current user (merchant) to set the store_id/seller context if needed
     const { data: { user } } = await supabase.auth.getUser();
+    const storeId = user?.user_metadata?.store_id || null;
     
     // 1. Insert base product
     const { data: productData, error: productError } = await supabase
@@ -90,7 +120,7 @@ export const ProductService = {
         description_ar: payload.description_ar,
         description_en: payload.description_en,
         category_id: payload.category_id || null,
-        store_id: null, // store_id is nullable; no stores table exists yet
+        store_id: storeId, // Dynamically set to merchant's store_id
         approval_status: 'PENDING',
         is_active: true
       })

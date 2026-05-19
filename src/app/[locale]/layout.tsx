@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Tujaria",
-  description: "Marketplace",
+  title: "Wesal | وصال",
+  description: "B2B & B2C E-commerce Marketplace",
   alternates: {
     languages: {
       en:'/en',

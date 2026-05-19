@@ -68,7 +68,7 @@ export default function AddProductPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type ProductFormData = any;
 
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<ProductFormData>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
       variants: [{ price: 0, stock_quantity: 0 }] // Initial empty variant
@@ -82,6 +82,87 @@ export default function AddProductPage() {
 
   const selectedSizeTypeId = watch('size_type_id');
   const filteredSizes = selectedSizeTypeId ? sizes.filter(s => s.size_type_id === selectedSizeTypeId) : sizes;
+
+  // Bulk Variant Generation States
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [defaultPrice, setDefaultPrice] = useState<number>(333);
+  const [defaultStock, setDefaultStock] = useState<number>(50);
+  const [defaultWeight, setDefaultWeight] = useState<number>(0.5);
+
+  // Clear selected sizes when size type changes
+  useEffect(() => {
+    setSelectedSizes([]);
+  }, [selectedSizeTypeId]);
+
+  // Cartesian combinations bulk variant generator
+  const generateBulkVariants = () => {
+    const generated: any[] = [];
+    
+    // If no colors and no sizes are selected, just add one default variant
+    if (selectedColors.length === 0 && selectedSizes.length === 0) {
+      generated.push({
+        price: defaultPrice,
+        stock_quantity: defaultStock,
+        weight_kg: defaultWeight,
+        sku: 'SKU-DEFAULT',
+        color_id: null,
+        size_id: null
+      });
+    }
+    // If only colors are selected
+    else if (selectedColors.length > 0 && selectedSizes.length === 0) {
+      selectedColors.forEach(colorId => {
+        const colorObj = colors.find(c => c.id === colorId);
+        const colorName = colorObj ? colorObj.name.split(' ')[0] : 'COLOR';
+        generated.push({
+          price: defaultPrice,
+          stock_quantity: defaultStock,
+          weight_kg: defaultWeight,
+          sku: `SKU-${colorName.toUpperCase()}`,
+          color_id: colorId,
+          size_id: null
+        });
+      });
+    }
+    // If only sizes are selected
+    else if (selectedColors.length === 0 && selectedSizes.length > 0) {
+      selectedSizes.forEach(sizeId => {
+        const sizeObj = sizes.find(s => s.id === sizeId);
+        const sizeName = sizeObj ? sizeObj.name : 'SIZE';
+        generated.push({
+          price: defaultPrice,
+          stock_quantity: defaultStock,
+          weight_kg: defaultWeight,
+          sku: `SKU-${sizeName.toUpperCase()}`,
+          color_id: null,
+          size_id: sizeId
+        });
+      });
+    }
+    // If both are selected
+    else {
+      selectedColors.forEach(colorId => {
+        const colorObj = colors.find(c => c.id === colorId);
+        const colorName = colorObj ? colorObj.name.split(' ')[0] : 'COLOR';
+        
+        selectedSizes.forEach(sizeId => {
+          const sizeObj = sizes.find(s => s.id === sizeId);
+          const sizeName = sizeObj ? sizeObj.name : 'SIZE';
+          generated.push({
+            price: defaultPrice,
+            stock_quantity: defaultStock,
+            weight_kg: defaultWeight,
+            sku: `SKU-${colorName.toUpperCase()}-${sizeName.toUpperCase()}`,
+            color_id: colorId,
+            size_id: sizeId
+          });
+        });
+      });
+    }
+
+    setValue('variants', generated);
+  };
 
   // Handle Multiple Images Upload to Cloudinary
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,109 +428,254 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Section 3: Variants (Colors, Sizes, Prices) */}
-        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b pb-4">
-            <h2 className="text-xl font-bold">خصائص المنتج المتعددة (Variants) *</h2>
-            <button
-              type="button"
-              onClick={() => appendVariant({ price: 0, stock_quantity: 0 })}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold hover:bg-primary/20 transition-colors text-sm"
-            >
-              <Plus className="w-4 h-4" /> إضافة متغير جديد
-            </button>
+        {/* Section 3: Dynamic Bulk Variants Builder */}
+        <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-8">
+          <div className="border-b pb-4">
+            <h2 className="text-xl font-bold">خصائص ومتغيرات المنتج (Variants Generator)</h2>
+            <p className="text-sm text-gray-400 mt-1">توليد تلقائي للمتغيرات (جميع الألوان والمقاسات) بضغطة زر واحدة لتوفير الوقت.</p>
           </div>
 
-          <div className="space-y-6">
-            {variantFields.map((field, index) => (
-              <div key={field.id} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 relative">
-                {variantFields.length > 1 && (
-                  <button 
-                    type="button" 
-                    onClick={() => removeVariant(index)}
-                    className="absolute top-4 left-4 p-2 text-gray-400 hover:text-error hover:bg-white rounded-lg transition-colors shadow-sm"
+          {/* Quick Selection Panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+            {/* Colors Multi-Select Swatches */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-gray-700">الألوان المتاحة للمنتج (Colors)</h4>
+              <div className="flex flex-wrap gap-2">
+                {colors.map(c => {
+                  const isSelected = selectedColors.includes(c.id);
+                  const toggleColorSelection = (colorId: string) => {
+                    setSelectedColors(prev => 
+                      prev.includes(colorId) ? prev.filter(id => id !== colorId) : [...prev, colorId]
+                    );
+                  };
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggleColorSelection(c.id)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                        isSelected 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary shadow-sm' 
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      <span 
+                        className="w-4 h-4 rounded-full border border-black/10 shrink-0" 
+                        style={{ backgroundColor: c.hex_code || '#fff' }}
+                      />
+                      <span>{c.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sizes Multi-Select Filtered by Type */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-gray-700">
+                المقاسات المتاحة للمنتج (Sizes)
+                {!selectedSizeTypeId && <span className="text-[10px] text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-md font-medium shrink-0 ml-2">يرجى تحديد نوع المقاس أولاً</span>}
+              </h4>
+              
+              {selectedSizeTypeId ? (
+                <div className="flex flex-wrap gap-2">
+                  {filteredSizes.map(s => {
+                    const isSelected = selectedSizes.includes(s.id);
+                    const toggleSizeSelection = (sizeId: string) => {
+                      setSelectedSizes(prev => 
+                        prev.includes(sizeId) ? prev.filter(id => id !== sizeId) : [...prev, sizeId]
+                      );
+                    };
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => toggleSizeSelection(s.id)}
+                        className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-all ${
+                          isSelected 
+                            ? 'border-primary bg-primary/5 ring-1 ring-primary shadow-sm' 
+                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 leading-relaxed">يرجى تحديد "نوع المقاس" (Size Type) من قسم البيانات الأساسية لعرض المقاسات المتاحة للتوليد.</p>
+              )}
+            </div>
+
+            {/* Quick Fill Default Parameters */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-gray-700">القيم الافتراضية للمتغيرات (Quick Settings)</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 mb-1">السعر (EGP)</label>
+                  <input
+                    type="number"
+                    value={defaultPrice}
+                    onChange={(e) => setDefaultPrice(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 outline-none text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 mb-1">الكمية بالمخزن</label>
+                  <input
+                    type="number"
+                    value={defaultStock}
+                    onChange={(e) => setDefaultStock(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 outline-none text-xs"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <button
+                    type="button"
+                    onClick={generateBulkVariants}
+                    className="w-full py-2.5 bg-primary text-white rounded-xl font-black text-xs hover:bg-primary/95 transition-all shadow-md shadow-primary/10 flex items-center justify-center gap-1"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    توليد المتغيرات المدمجة تلقائياً
                   </button>
-                )}
-                
-                <h4 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs">{index + 1}</span>
-                  متغير رقم {index + 1}
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {/* Price */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1.5">السعر (EGP) *</label>
-                    <input
-                      type="number" step="0.01"
-                      {...register(`variants.${index}.price`, { valueAsNumber: true })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm"
-                    />
-                    {(errors as any).variants?.[index]?.price && <p className="text-error text-xs mt-1">{(errors as any).variants?.[index]?.price?.message}</p>}
-                  </div>
-
-                  {/* Stock */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1.5">الكمية المتاحة *</label>
-                    <input
-                      type="number"
-                      {...register(`variants.${index}.stock_quantity`, { valueAsNumber: true })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-
-                  {/* Weight */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1.5">الوزن (Kg)</label>
-                    <input
-                      type="number" step="0.01"
-                      {...register(`variants.${index}.weight_kg`, { valueAsNumber: true })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-
-                  {/* SKU */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1.5">SKU (اختياري)</label>
-                    <input
-                      type="text"
-                      {...register(`variants.${index}.sku`)}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-
-                  {/* Color */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1.5">اللون</label>
-                    <select
-                      {...register(`variants.${index}.color_id`)}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm bg-white"
-                    >
-                      <option value="">بدون لون</option>
-                      {colors.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Size */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1.5">المقاس</label>
-                    <select
-                      {...register(`variants.${index}.size_id`)}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-primary text-sm bg-white"
-                    >
-                      <option value="">بدون مقاس</option>
-                      {filteredSizes.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Variants Table / Grid */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold text-gray-800">
+                قائمة المتغيرات المضافة ({variantFields.length})
+              </h3>
+              <button
+                type="button"
+                onClick={() => appendVariant({ price: 0, stock_quantity: 0 })}
+                className="text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl transition-all"
+              >
+                + إضافة متغير يدوي مستقل
+              </button>
+            </div>
+
+            {variantFields.length === 0 ? (
+              <div className="p-8 text-center bg-gray-50 border border-dashed rounded-2xl text-gray-400 text-sm">
+                لم يتم إضافة أو توليد أي متغيرات للمنتج بعد. يرجى اختيار الألوان/المقاسات والضغط على توليد المتغيرات.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {variantFields.map((field, index) => {
+                  const watchColorId = watch(`variants.${index}.color_id`);
+                  const watchSizeId = watch(`variants.${index}.size_id`);
+                  
+                  const activeColor = colors.find(c => c.id === watchColorId);
+                  const activeSize = sizes.find(s => s.id === watchSizeId);
+
+                  return (
+                    <div key={field.id} className="p-4 bg-white border border-gray-100 hover:border-gray-200 rounded-2xl shadow-sm flex flex-col lg:flex-row items-start lg:items-center gap-4 transition-all relative">
+                      
+                      {/* Combination Badges Indicator */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[10px] font-bold">
+                          {index + 1}
+                        </span>
+                        
+                        {/* Color badge */}
+                        {activeColor ? (
+                          <span className="flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-700">
+                            <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: activeColor.hex_code }} />
+                            {activeColor.name}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-gray-50 rounded-lg text-[10px] text-gray-400 font-semibold border border-dashed">لا يوجد لون</span>
+                        )}
+
+                        {/* Size badge */}
+                        {activeSize ? (
+                          <span className="px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-black text-primary">
+                            {activeSize.name}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-gray-50 rounded-lg text-[10px] text-gray-400 font-semibold border border-dashed">بدون مقاس</span>
+                        )}
+                      </div>
+
+                      {/* Input fields row */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1 w-full">
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-400 mb-0.5">SKU رمز المتغير</label>
+                          <input
+                            type="text"
+                            {...register(`variants.${index}.sku`)}
+                            className="w-full px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-xs focus:border-primary"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-400 mb-0.5">السعر (EGP) *</label>
+                          <input
+                            type="number" step="0.01"
+                            {...register(`variants.${index}.price`, { valueAsNumber: true })}
+                            className="w-full px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-xs focus:border-primary font-bold text-primary"
+                          />
+                          {(errors as any).variants?.[index]?.price && (
+                            <p className="text-error text-[10px] mt-0.5">{(errors as any).variants?.[index]?.price?.message}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-400 mb-0.5">الكمية *</label>
+                          <input
+                            type="number"
+                            {...register(`variants.${index}.stock_quantity`, { valueAsNumber: true })}
+                            className="w-full px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-xs focus:border-primary"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-bold text-gray-400 mb-0.5">الوزن (Kg)</label>
+                          <input
+                            type="number" step="0.01"
+                            {...register(`variants.${index}.weight_kg`, { valueAsNumber: true })}
+                            className="w-full px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-xs focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Selectable manual overrides for Color and Size (for manual addition flexibility) */}
+                      {!activeColor && !activeSize && (
+                        <div className="flex gap-2 w-full lg:w-auto mt-2 lg:mt-0">
+                          <select
+                            {...register(`variants.${index}.color_id`)}
+                            className="px-2 py-1 rounded-lg border border-gray-200 text-xs bg-white focus:border-primary outline-none"
+                          >
+                            <option value="">لون...</option>
+                            {colors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                          </select>
+
+                          <select
+                            {...register(`variants.${index}.size_id`)}
+                            className="px-2 py-1 rounded-lg border border-gray-200 text-xs bg-white focus:border-primary outline-none"
+                          >
+                            <option value="">مقاس...</option>
+                            {filteredSizes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Delete combination button */}
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(index)}
+                        className="text-gray-400 hover:text-error hover:bg-red-50 p-2 rounded-xl transition-all self-end lg:self-auto ml-auto lg:ml-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

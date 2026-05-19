@@ -1,48 +1,76 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Column, DataTable } from '@/src/components/admin/DataTable';
 import { useTranslations, useLocale } from 'next-intl';
-import { BaseService } from '@/src/services/baseService';
-import { useSupabaseData } from '@/src/hooks/useSupabaseData';
 import { Loader } from '@/src/components/ui/Loader';
-import { useLocaleString } from '@/src/hooks/useLocaleString';
 
-// Extend the standard OrderItem type to include joined relational data for the UI
 interface MerchantOrderItemView {
   id: string;
   order_id: string;
   quantity: number;
   price_at_time: number;
+  unit_price?: number;
+  total_price?: number;
   orders: {
     status: string;
     created_at: string;
-    shipping_address: any;
-    user_id: string;
     fixed_shipping_price?: number;
   };
   products: {
-    title: { en: string; ar: string };
-    images: string[];
+    name_ar: string;
+    name_en: string;
+    title?: { en: string; ar: string };
+    images?: string[];
+    product_images?: { image_url: string }[];
   };
+  variant: {
+    sku: string | null;
+    colors?: {
+      name: string;
+      hex_code: string;
+    } | null;
+    sizes?: {
+      name: string;
+    } | null;
+  } | null;
   commission_amount?: number;
 }
-
-const MerchantOrderItemsService = new BaseService<MerchantOrderItemView>('order_items');
 
 export default function MerchantOrdersPage() {
   const t = useTranslations('Merchant.Orders');
   const tCommon = useTranslations('Common');
   const locale = useLocale();
-  const { getLocalizedString } = useLocaleString();
+  
+  const [orderItems, setOrderItems] = useState<MerchantOrderItemView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch only this merchant's order items (handled by RLS), and join with `orders` and `products` tables
-  const { data: orderItems, loading, error } = useSupabaseData<MerchantOrderItemView>(
-    MerchantOrderItemsService, 
-    undefined, 
-    undefined, 
-    '*, orders(*), products(*)'
-  );
+  const fetchMerchantOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch from our secure API endpoint that bypasses RLS for nested sizes and colors tables
+      const response = await fetch('/api/merchant/orders');
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to fetch orders');
+      }
+
+      const data = await response.json();
+      setOrderItems((data as MerchantOrderItemView[]) || []);
+    } catch (err: any) {
+      console.error('Error fetching merchant orders:', err);
+      setError(err.message || 'Failed to fetch orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMerchantOrders();
+  }, []);
 
   const columns: Column<MerchantOrderItemView>[] = [
     { 
@@ -51,77 +79,91 @@ export default function MerchantOrdersPage() {
       cell: (item) => <span className="text-xs text-gray-500 font-mono">{item.order_id.slice(0, 8)}...</span>
     },
     { 
-      header: locale === 'ar' ? 'بيانات شحن العميل' : 'Customer Info & Shipping', 
-      accessorKey: 'customer_details',
-      cell: (item) => {
-        let cust = { name: 'Guest Customer', phone: 'N/A', address: 'N/A', governorate: '' };
-        if (item.orders?.shipping_address) {
-          try {
-            if (typeof item.orders.shipping_address === 'object') {
-              cust = item.orders.shipping_address;
-            } else {
-              cust = JSON.parse(item.orders.shipping_address);
-            }
-          } catch (e) {
-            cust.name = locale === 'ar' ? 'عميل زائر' : 'Guest Customer';
-          }
-        }
-        return (
-          <div className="flex flex-col text-xs text-start space-y-1">
-            <span className="font-bold text-gray-900 text-sm">{cust.name}</span>
-            <a href={`tel:${cust.phone}`} className="text-primary hover:underline font-semibold flex items-center gap-1 font-mono">
-              📞 {cust.phone}
-            </a>
-            <span className="text-[11px] text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 max-w-[220px] truncate" title={cust.address}>
-              📍 {cust.governorate ? `${cust.governorate}: ` : ''}{cust.address}
-            </span>
-          </div>
-        );
-      }
-    },
-    { 
-      header: locale === 'ar' ? 'المنتج' : 'Product', 
+      header: locale === 'ar' ? 'المنتج المطلوب' : 'Requested Product', 
       accessorKey: 'products',
       cell: (item) => {
-        // Fallback title check for old/new schemas
-        const title = item.products 
-          ? (locale === 'ar' ? (item.products as any).name_ar || item.products.title?.ar : (item.products as any).name_en || item.products.title?.en) 
-          : productNameFallback(item);
+        const title = locale === 'ar' 
+          ? item.products?.name_ar || item.products?.title?.ar || productNameFallback()
+          : item.products?.name_en || item.products?.title?.en || productNameFallback();
         
         const defaultImg = item.products?.images?.[0] 
-          || (item as any).products?.product_images?.[0]?.image_url
+          || item.products?.product_images?.[0]?.image_url
           || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100';
 
         return (
-          <div className="flex items-center gap-3">
-            <img src={defaultImg} alt={title} className="w-10 h-10 rounded-md object-cover border border-gray-100" />
-            <span className="font-semibold text-sm text-gray-900">{title}</span>
+          <div className="flex items-center gap-3 text-start">
+            <img src={defaultImg} alt={title} className="w-10 h-10 rounded-md object-cover border border-gray-100 shrink-0" />
+            <span className="font-bold text-sm text-gray-900 line-clamp-2">{title}</span>
+          </div>
+        );
+      }
+    },
+    {
+      header: locale === 'ar' ? 'المواصفات المطلوبة للتحضير' : 'Attributes for Preparation',
+      accessorKey: 'variant_details',
+      cell: (item) => {
+        const colorName = item.variant?.colors?.name || (locale === 'ar' ? 'غير محدد' : 'N/A');
+        const hex = item.variant?.colors?.hex_code;
+        const sizeName = item.variant?.sizes?.name || (locale === 'ar' ? 'غير محدد' : 'N/A');
+        const sku = item.variant?.sku || '—';
+
+        return (
+          <div className="flex flex-col text-start space-y-1.5 text-xs">
+            {/* Color Swatch */}
+            <div className="flex items-center gap-2 font-semibold">
+              <span className="text-gray-500">{locale === 'ar' ? 'اللون:' : 'Color:'}</span>
+              <span className="text-gray-950 font-bold">{colorName}</span>
+              {hex && (
+                <div 
+                  className="w-3.5 h-3.5 rounded-full border border-gray-350 shadow-sm shrink-0" 
+                  style={{ backgroundColor: hex }} 
+                  title={colorName}
+                />
+              )}
+            </div>
+            {/* Size */}
+            <div className="flex items-center gap-2 font-semibold">
+              <span className="text-gray-500">{locale === 'ar' ? 'المقاس:' : 'Size:'}</span>
+              <span className="px-2 py-0.5 bg-primary/5 text-primary rounded font-bold border border-primary/10">
+                {sizeName}
+              </span>
+            </div>
+            {/* SKU */}
+            <div className="text-[10px] text-gray-400 font-mono">
+              SKU: {sku}
+            </div>
           </div>
         );
       }
     },
     { 
-      header: locale === 'ar' ? 'الكمية' : 'Qty', 
+      header: locale === 'ar' ? 'الكمية المطلوبة' : 'Qty', 
       accessorKey: 'quantity',
-      cell: (item) => <span className="font-bold">{item.quantity}</span>
+      cell: (item) => (
+        <span className="font-extrabold text-base bg-gray-100 text-gray-800 px-3 py-1 rounded-lg">
+          {item.quantity}
+        </span>
+      )
     },
     { 
-      header: locale === 'ar' ? 'أرباحي وعمولتي 💰' : 'My Commission 💰', 
-      accessorKey: 'commission_amount',
+      header: locale === 'ar' ? 'مستحقات المتجر 💵' : 'My Payout 💵', 
+      accessorKey: 'payout',
       cell: (item) => {
-        const comm = item.commission_amount ?? 0;
+        // Calculate the exact product price/earnings the merchant specified (excluding shipping/commission)
+        const price = item.price_at_time || item.unit_price || 0;
+        const totalPayout = price * item.quantity;
         return (
           <span className="font-black text-success text-sm bg-success/5 px-2.5 py-1.5 rounded-lg border border-success/10 whitespace-nowrap">
-            +{Number(comm).toFixed(2)} EGP
+            {totalPayout.toFixed(2)} EGP
           </span>
         );
       }
     },
     { 
-      header: locale === 'ar' ? 'سعر التحصيل النهائي' : 'Collect Price', 
+      header: locale === 'ar' ? 'سعر تحصيل العميل 🚚' : 'Customer Collection', 
       accessorKey: 'total',
       cell: (item) => {
-        const price = item.price_at_time ?? (item as any).unit_price ?? 350.00;
+        const price = item.price_at_time || item.unit_price || 0;
         const subtotal = item.quantity * price;
         const shipping = Number(item.orders?.fixed_shipping_price || 0);
         return (
@@ -157,13 +199,12 @@ export default function MerchantOrdersPage() {
     { 
       header: t('columns.date') || 'Date', 
       accessorKey: 'date',
-      cell: (item) => item.orders ? new Date(item.orders.created_at).toLocaleDateString() : 'N/A'
+      cell: (item) => item.orders ? new Date(item.orders.created_at).toLocaleDateString('ar-EG') : 'N/A'
     }
   ];
 
-  function productNameFallback(item: any) {
-    if (locale === 'ar') return 'قميص أزرق كلاسيكي فاخر';
-    return 'Premium Classic Blue Shirt';
+  function productNameFallback() {
+    return locale === 'ar' ? 'منتج متجر وصال' : 'Wesal Store Product';
   }
 
   if (loading) {
@@ -175,7 +216,11 @@ export default function MerchantOrdersPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-foreground">{t('title') || 'Orders'}</h1>
-          <p className="text-gray-500 mt-2">{t('description') || 'Manage your customer orders and track their fulfillment status.'}</p>
+          <p className="text-gray-500 mt-2">
+            {locale === 'ar' 
+              ? 'تجهيز وتحضير طلبات العملاء بالكمية والمواصفات (المقاس واللون) المطلوبة.' 
+              : 'Prepare customer orders with requested quantities and attributes.'}
+          </p>
         </div>
       </div>
 

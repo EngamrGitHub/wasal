@@ -41,6 +41,9 @@
   --color-muted: var(--muted);
   --color-border: var(--border);
   
+  --color-success: var(--success);
+  --color-error: var(--error);
+  
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   
   --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.05);

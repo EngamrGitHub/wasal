@@ -1,5 +1,5 @@
 import { Hero } from '@/src/components/home/Hero'
-import { CategoryBar } from '@/src/components/home/CategoryBar'
+import { CategoryCarousel } from '@/src/components/home/CategoryCarousel'
 import { ProductGrid } from '@/src/components/home/ProductGrid'
 
 export default function Home({ search }: { search?: string }) {
@@ -9,7 +9,7 @@ export default function Home({ search }: { search?: string }) {
       {!search && (
         <>
           <Hero />
-          <CategoryBar />
+          <CategoryCarousel />
         </>
       )}
       <ProductGrid search={search} />

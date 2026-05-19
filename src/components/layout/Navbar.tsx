@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ShoppingCart, Search, Home, Store, Settings2, Menu, X } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
@@ -14,6 +14,28 @@ export function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [cartCount, setCartCount] = useState(0);
+
+  React.useEffect(() => {
+    const updateCartCount = () => {
+      const saved = localStorage.getItem('wesal_cart');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setCartCount(Number(parsed.quantity || 1));
+        } catch {
+          setCartCount(1);
+        }
+      } else {
+        setCartCount(0);
+      }
+    };
+
+    updateCartCount();
+
+    window.addEventListener('wesal_cart_updated', updateCartCount);
+    return () => window.removeEventListener('wesal_cart_updated', updateCartCount);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +53,7 @@ export function Navbar() {
   };
 
   const navItems = [
-    { icon: ShoppingCart, label: t('cart'), href: `/${locale}/cart`, badge: 2 },
+    { icon: ShoppingCart, label: t('cart'), href: `/${locale}/cart`, badge: cartCount },
     { icon: Settings2, label: t('admin'), href: `/${locale}/admin` },
     { icon: Store, label: t('merchants'), href: `/${locale}/merchant` },
     { icon: Home, label: t('home'), href: `/${locale}` },
@@ -53,9 +75,17 @@ export function Navbar() {
           </button>
 
           {/* Logo */}
-          <Link href={`/${locale}`} className="shrink-0 flex-1 lg:flex-none text-center lg:text-start">
-            <span className="text-3xl lg:text-4xl font-black tracking-tight text-primary uppercase">
-              TUJARIA
+          <Link href={`/${locale}`} className="shrink-0 flex-1 lg:flex-none flex items-center justify-center lg:justify-start gap-2.5">
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/logo.jpg" 
+                alt="Wesal Logo" 
+                className="absolute inset-x-0 top-0 w-full h-[165%] object-cover object-top"
+              />
+            </div>
+            <span className="text-2xl lg:text-3xl font-black tracking-tight text-primary">
+              {locale === 'ar' ? 'وصال' : 'Wesal'}
             </span>
           </Link>
 
@@ -69,9 +99,11 @@ export function Navbar() {
             </button>
             <Link href={`/${locale}/cart`} className="relative p-2 text-gray-600 hover:text-primary">
               <ShoppingCart className="w-6 h-6" />
-              <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border border-white">
-                2
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border border-white">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>
@@ -102,7 +134,7 @@ export function Navbar() {
             >
               <div className="relative p-2 rounded-xl group-hover:bg-primary/5 transition-colors">
                 <item.icon className="w-6 h-6 text-gray-500 group-hover:text-primary transition-colors" />
-                  {item.badge && (
+                  {!!item.badge && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm">
                       {item.badge}
                     </span>
@@ -152,7 +184,7 @@ export function Navbar() {
               >
                 <div className="relative">
                   <item.icon className="w-6 h-6" />
-                  {item.badge && (
+                  {!!item.badge && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border-2 border-white">
                       {item.badge}
                     </span>

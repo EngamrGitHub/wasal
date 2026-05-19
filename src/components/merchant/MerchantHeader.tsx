@@ -2,13 +2,37 @@
 
 import { Search, Menu, Store } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NotificationDropdown } from '../layout/NotificationDropdown'
+import { createClient } from '@/src/lib/supabase/client'
 
 export function MerchantHeader() {
   const t = useTranslations('Merchant.Header');
   const locale = useLocale();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const [storeName, setStoreName] = useState('');
+  const [storeEmail, setStoreEmail] = useState('');
+
+  useEffect(() => {
+    const fetchMerchantData = async () => {
+      try {
+        const supabase = createClient();
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const name = locale === 'ar' 
+            ? (user.user_metadata?.store_name_ar || user.user_metadata?.full_name || 'متجر وصال')
+            : (user.user_metadata?.store_name_en || user.user_metadata?.full_name || 'Wesal Store');
+          setStoreName(name);
+          setStoreEmail(user.email || '');
+        }
+      } catch (err) {
+        console.error('Error fetching merchant header info:', err);
+      }
+    };
+    fetchMerchantData();
+  }, [locale]);
 
   return (
     <header className="h-20 bg-white border-b border-gray-100 sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 shadow-sm">
@@ -36,8 +60,8 @@ export function MerchantHeader() {
             <Store className="w-5 h-5" />
           </div>
           <div className="hidden md:block text-sm">
-            <p className="font-bold text-foreground">{t('store_name')}</p>
-            <p className="text-gray-500 text-xs">{t('store_email')}</p>
+            <p className="font-bold text-foreground">{storeName || t('store_name')}</p>
+            <p className="text-gray-500 text-xs">{storeEmail || t('store_email')}</p>
           </div>
         </div>
       </div>

@@ -7,10 +7,7 @@ import { Product, OrderItem } from '@/src/types';
 import { ShoppingBag, Package, Star, Clock } from 'lucide-react';
 import { Loader } from '@/src/components/ui/Loader';
 import { ConnectionStatus } from '@/src/components/ui/ConnectionStatus';
-
-// We fetch exactly what belongs to this merchant (RLS will filter automatically based on auth)
-const MerchantProductService = new BaseService<Product>('products');
-const MerchantOrderItemsService = new BaseService<OrderItem>('order_items');
+import { createClient } from '@/src/lib/supabase/client';
 
 export default function MerchantDashboardPage() {
   const t = useTranslations('Merchant.Dashboard');
@@ -31,21 +28,43 @@ export default function MerchantDashboardPage() {
       try {
         setLoading(true);
         
-        // Parallel fetching
-        const [activeProducts, allOrderItems] = await Promise.all([
-          MerchantProductService.count('approval_status', 'APPROVED').catch(() => 0),
-          MerchantOrderItemsService.getAll().catch(() => [])
-        ]);
+        const supabase = createClient();
+        if (!supabase) throw new Error('Supabase client not initialized');
+
+        const { data: { user } } = await supabase.auth.getUser();
+        const storeId = user?.user_metadata?.store_id;
+
+        let activeProducts = 0;
+        let pendingOrders = 0;
+        let totalSales = 0;
+
+        if (storeId) {
+          // Count active approved products for this merchant
+          const { count } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('store_id', storeId)
+            .eq('approval_status', 'APPROVED');
+          activeProducts = count || 0;
+
+          // Fetch order items belonging to this merchant
+          const { data: orderItems } = await supabase
+            .from('order_items')
+            .select('*, variant:product_variants!inner(product:products!inner(store_id))')
+            .eq('variant.product.store_id', storeId);
+
+          if (orderItems && orderItems.length > 0) {
+            totalSales = orderItems.reduce((acc: number, item: any) => acc + (parseFloat(item.unit_price || item.price_at_time) * item.quantity), 0);
+            pendingOrders = orderItems.length;
+          }
+        }
 
         if (isMounted) {
-          // Calculate Total Sales based on order items
-          const totalSales = allOrderItems.reduce((acc, item) => acc + (item.price_at_time * item.quantity), 0);
-          
           setStats(prev => ({
             ...prev,
             activeProducts,
             totalSales,
-            pendingOrders: allOrderItems.length // Simplified for MVP: counting all items
+            pendingOrders
           }));
         }
       } catch (error) {
@@ -63,7 +82,7 @@ export default function MerchantDashboardPage() {
   const statCards = [
     {
       title: t('stats.total_sales') || 'Total Sales',
-      value: `$${stats.totalSales.toFixed(2)}`,
+      value: `${stats.totalSales.toFixed(2)} EGP`,
       icon: <ShoppingBag className="w-8 h-8 text-blue-500" />,
       bg: 'bg-blue-50',
       textColor: 'text-blue-700'
