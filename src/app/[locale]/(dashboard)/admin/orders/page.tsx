@@ -44,6 +44,16 @@ interface AdminOrderView {
       merchant_email: string;
       merchant_phone: string;
       commission_rate: number;
+      address?: {
+        governorate_id: string;
+        governorate_name_ar: string;
+        governorate_name_en: string;
+        city: string;
+        street: string;
+        building: string;
+        floor: string;
+        notes: string;
+      } | null;
     };
   }[];
 }
@@ -239,6 +249,19 @@ export default function AdminOrdersPage() {
                       <Mail className="w-3 h-3 text-gray-400" />
                       <span>{m.merchant_email}</span>
                     </div>
+                    {m.address ? (
+                      <div className="text-gray-500 flex items-start gap-1 font-semibold mt-1 pt-1 border-t border-gray-100/80">
+                        <span className="shrink-0 text-primary">📍</span>
+                        <span className="leading-tight">
+                          {locale === 'ar' ? m.address.governorate_name_ar : m.address.governorate_name_en} - {m.address.city} - {m.address.street} - {m.address.building} {m.address.floor ? `, ${m.address.floor}` : ''} {m.address.notes ? `(${m.address.notes})` : ''}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-amber-600 flex items-start gap-1 font-semibold mt-1 pt-1 border-t border-gray-100/80">
+                        <span className="shrink-0">📍</span>
+                        <span>{locale === 'ar' ? 'لا يوجد عنوان مسجل للتاجر' : 'No registered address for merchant'}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

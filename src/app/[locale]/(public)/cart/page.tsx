@@ -13,11 +13,14 @@ function CartCheckoutContent() {
   const locale = useLocale();
   const productId = searchParams.get('productId');
   const variantId = searchParams.get('variantId');
+  const urlQuantity = searchParams.get('quantity');
 
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [product, setProduct] = useState<any>(null);
-  const [quantity, setQuantity] = useState(1);
+  
+  // Single source of truth for the active cart item
+  const [cartItem, setCartItem] = useState<{ productId: string; variantId: string; quantity: number } | null>(null);
   
   // Governorate / Shipping states
   const [governorates, setGovernorates] = useState<any[]>([]);
@@ -39,76 +42,97 @@ function CartCheckoutContent() {
   // 💡 This is the fixed shipping cost shown to the customer (The rest is absorbed into product price)
   const FIXED_CUSTOMER_SHIPPING = 45.00;
 
-  // Fetch product and governorates
+  // 1. Sync URL and LocalStorage into a single cartItem state
+  useEffect(() => {
+    let activeItem: { productId: string; variantId: string; quantity: number } | null = null;
+
+    if (productId) {
+      // URL parameters take priority (when redirected from product detail page)
+      const parsedQty = urlQuantity ? parseInt(urlQuantity, 10) : 1;
+      activeItem = {
+        productId,
+        variantId: variantId || '',
+        quantity: isNaN(parsedQty) ? 1 : parsedQty
+      };
+      localStorage.setItem('wesal_cart', JSON.stringify(activeItem));
+      window.dispatchEvent(new Event('wesal_cart_updated'));
+    } else {
+      // Fallback: Read from LocalStorage (when navigating from Navbar)
+      const saved = localStorage.getItem('wesal_cart');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.productId) {
+            activeItem = {
+              productId: parsed.productId,
+              variantId: parsed.variantId || '',
+              quantity: Number(parsed.quantity || 1)
+            };
+          }
+        } catch (e) {
+          console.error('Error parsing cart from localStorage', e);
+        }
+      }
+    }
+
+    setCartItem(activeItem);
+  }, [productId, variantId, urlQuantity]);
+
+  // 2. Fetch product details and governorates when cartItem.productId changes
   useEffect(() => {
     async function loadData() {
-      const supabase = createClient() as any;
-      if (!supabase) return;
-
-      // 1. Fetch Governorates
-      const { data: govData } = await supabase
-        .from('governorates')
-        .select('*')
-        .eq('is_active', true)
-        .order(locale === 'ar' ? 'name_ar' : 'name_en');
-
-      if (govData) {
-        setGovernorates(govData);
-        // Select Cairo by default if found
-        const cairo = govData.find((g: any) => g.name_en.toLowerCase() === 'cairo');
-        if (cairo) {
-          setSelectedGovId(cairo.id);
-          setActualShippingPrice(Number(cairo.shipping_price || 45));
-        } else if (govData.length > 0) {
-          setSelectedGovId(govData[0].id);
-          setActualShippingPrice(Number(govData[0].shipping_price || 0));
-        }
-      }
-
-      // 2. Hydrate from URL or LocalStorage
-      let activeProductId = productId;
-      let activeVariantId = variantId;
-
-      if (productId) {
-        const cartItem = {
-          productId,
-          variantId: variantId || '',
-          quantity: 1
-        };
-        localStorage.setItem('wesal_cart', JSON.stringify(cartItem));
-        window.dispatchEvent(new Event('wesal_cart_updated'));
-      } else {
-        const saved = localStorage.getItem('wesal_cart');
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            activeProductId = parsed.productId;
-            activeVariantId = parsed.variantId;
-            setQuantity(Number(parsed.quantity || 1));
-          } catch (e) {
-            console.error('Error parsing cart from localStorage', e);
-          }
-        }
-      }
-
-      if (!activeProductId) {
+      if (!cartItem?.productId) {
         setLoading(false);
         return;
       }
 
-      const { data: prodData } = await supabase
-        .from('products')
-        .select('*, product_variants(*), product_images(*)')
-        .eq('id', activeProductId)
-        .limit(1);
+      setLoading(true);
+      const supabase = createClient() as any;
+      if (!supabase) return;
 
-      if (prodData && prodData.length > 0) {
-        setProduct(prodData[0]);
+      try {
+        // Fetch governorates if not loaded yet
+        if (governorates.length === 0) {
+          const { data: govData } = await supabase
+            .from('governorates')
+            .select('*')
+            .eq('is_active', true)
+            .order(locale === 'ar' ? 'name_ar' : 'name_en');
+
+          if (govData) {
+            setGovernorates(govData);
+            // Select Cairo by default if found
+            const cairo = govData.find((g: any) => g.name_en.toLowerCase() === 'cairo');
+            if (cairo) {
+              setSelectedGovId(cairo.id);
+              setActualShippingPrice(Number(cairo.shipping_price || 45));
+            } else if (govData.length > 0) {
+              setSelectedGovId(govData[0].id);
+              setActualShippingPrice(Number(govData[0].shipping_price || 0));
+            }
+          }
+        }
+
+        // Fetch product with variants and images
+        const { data: prodData } = await supabase
+          .from('products')
+          .select('*, product_variants(*), product_images(*)')
+          .eq('id', cartItem.productId)
+          .limit(1);
+
+        if (prodData && prodData.length > 0) {
+          setProduct(prodData[0]);
+        } else {
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error('Error loading checkout data:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadData();
-  }, [productId, variantId, locale]);
+  }, [cartItem?.productId, locale]);
 
   const handleGovChange = (govId: string) => {
     setSelectedGovId(govId);
@@ -119,15 +143,16 @@ function CartCheckoutContent() {
   };
 
   // 🧮 Calculations for hidden shipping logic
-  const selectedVariant = product?.product_variants?.find((v: any) => v.id === variantId) 
+  const selectedVariant = product?.product_variants?.find((v: any) => v.id === cartItem?.variantId) 
     || product?.product_variants?.[0];
   const basePrice = Number(selectedVariant?.price || 350.00);
   
   // Display shipping is the actual shipping cost of the chosen governorate.
   const displayShipping = Number(actualShippingPrice);
   
-  // Product price is the clean basePrice (which already includes platform commission and shipping surcharges from approval).
+  // Product price is the clean basePrice
   const displayProductPrice = basePrice;
+  const quantity = cartItem?.quantity || 1;
   const productsSubtotal = displayProductPrice * quantity;
   const discountAmount = appliedCoupon?.discountAmount || 0;
   const finalPrice = productsSubtotal + displayShipping - discountAmount;
@@ -346,19 +371,15 @@ function CartCheckoutContent() {
                 <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
                   <button 
                     type="button"
-                    onClick={() => setQuantity(q => {
-                      const newQ = Math.max(1, q - 1);
-                      const saved = localStorage.getItem('wesal_cart');
-                      if (saved) {
-                        try {
-                          const parsed = JSON.parse(saved);
-                          parsed.quantity = newQ;
-                          localStorage.setItem('wesal_cart', JSON.stringify(parsed));
-                          window.dispatchEvent(new Event('wesal_cart_updated'));
-                        } catch (e) { console.error(e); }
+                    onClick={() => {
+                      const newQ = Math.max(1, quantity - 1);
+                      if (cartItem) {
+                        const updated = { ...cartItem, quantity: newQ };
+                        setCartItem(updated);
+                        localStorage.setItem('wesal_cart', JSON.stringify(updated));
+                        window.dispatchEvent(new Event('wesal_cart_updated'));
                       }
-                      return newQ;
-                    })}
+                    }}
                     className="p-1 text-gray-500 hover:text-primary transition-colors"
                   >
                     <Minus className="w-4 h-4" />
@@ -366,19 +387,15 @@ function CartCheckoutContent() {
                   <span className="font-black text-gray-900 min-w-[20px] text-center">{quantity}</span>
                   <button 
                     type="button"
-                    onClick={() => setQuantity(q => {
-                      const newQ = q + 1;
-                      const saved = localStorage.getItem('wesal_cart');
-                      if (saved) {
-                        try {
-                          const parsed = JSON.parse(saved);
-                          parsed.quantity = newQ;
-                          localStorage.setItem('wesal_cart', JSON.stringify(parsed));
-                          window.dispatchEvent(new Event('wesal_cart_updated'));
-                        } catch (e) { console.error(e); }
+                    onClick={() => {
+                      const newQ = quantity + 1;
+                      if (cartItem) {
+                        const updated = { ...cartItem, quantity: newQ };
+                        setCartItem(updated);
+                        localStorage.setItem('wesal_cart', JSON.stringify(updated));
+                        window.dispatchEvent(new Event('wesal_cart_updated'));
                       }
-                      return newQ;
-                    })}
+                    }}
                     className="p-1 text-gray-500 hover:text-primary transition-colors"
                   >
                     <Plus className="w-4 h-4" />
@@ -392,6 +409,7 @@ function CartCheckoutContent() {
                     localStorage.removeItem('wesal_cart');
                     window.dispatchEvent(new Event('wesal_cart_updated'));
                     setProduct(null);
+                    setCartItem(null);
                     router.push('/cart');
                   }}
                   className="p-3 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all duration-200 shadow-sm"

@@ -25,8 +25,8 @@ export function Hero() {
           spaceBetween={0}
           slidesPerView={1}
           pagination={{ clickable: true }}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          className="aspect-21/9 lg:aspect-3/1"
+          autoplay={{ delay: 4000, disableOnInteraction: false }}
+          className="h-[200px] sm:h-[280px] md:h-[340px] lg:h-[380px]"
         >
           {slides.map((slide, index) => (
             <SwiperSlide key={index}>
@@ -39,12 +39,12 @@ export function Hero() {
                   priority={index === 0}
                 />
                 {/* Overlay with Text */}
-                <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-6 transition-opacity group-hover:bg-black/40">
-                  <div className="animate-fade-in space-y-4">
-                    <h2 className="text-3xl lg:text-7xl font-black text-white leading-tight drop-shadow-lg">
+                <div className="absolute inset-0 bg-black/35 flex flex-col items-center justify-center text-center p-6 transition-opacity group-hover:bg-black/40">
+                  <div className="animate-fade-in space-y-3">
+                    <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight drop-shadow-lg">
                        {t(slide.title)}
                     </h2>
-                    <p className="text-lg lg:text-3xl font-bold text-white/90 drop-shadow-md">
+                    <p className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-white/90 drop-shadow-md">
                        {t(slide.subtitle)}
                     </p>
                   </div>

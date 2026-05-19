@@ -54,7 +54,6 @@ export function Navbar() {
 
   const navItems = [
     { icon: ShoppingCart, label: t('cart'), href: `/${locale}/cart`, badge: cartCount },
-    { icon: Settings2, label: t('admin'), href: `/${locale}/admin` },
     { icon: Store, label: t('merchants'), href: `/${locale}/merchant` },
     { icon: Home, label: t('home'), href: `/${locale}` },
   ];

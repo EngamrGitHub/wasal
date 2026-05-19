@@ -26,6 +26,21 @@ export async function GET() {
     const { data: { users: authUsers }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
     if (usersError) throw usersError;
 
+    // Fetch addresses with governorate names
+    const { data: addresses, error: addressesError } = await supabaseAdmin
+      .from('addresses')
+      .select('*, governorates(name_ar, name_en)');
+    if (addressesError) throw addressesError;
+
+    const addressesMap = new Map();
+    if (addresses) {
+      addresses.forEach(addr => {
+        if (addr.is_default || !addressesMap.has(addr.user_id)) {
+          addressesMap.set(addr.user_id, addr);
+        }
+      });
+    }
+
     // Create a quick lookup map for store_id -> merchant metadata
     const merchantMap = new Map<string, {
       storeNameAr: string;
@@ -34,19 +49,31 @@ export async function GET() {
       merchantEmail: string;
       merchantPhone: string;
       commissionRate: number;
+      address: any;
     }>();
 
     authUsers.forEach(u => {
       const metadata = u.user_metadata || {};
       const storeId = metadata.store_id;
       if (storeId) {
+        const addr = addressesMap.get(u.id);
         merchantMap.set(storeId, {
           storeNameAr: metadata.store_name_ar || metadata.full_name || 'متجر وصال',
           storeNameEn: metadata.store_name_en || metadata.full_name || 'Wesal Store',
           merchantName: metadata.full_name || 'تاجر وصال',
           merchantEmail: u.email || '',
           merchantPhone: metadata.phone || u.phone || 'N/A',
-          commissionRate: parseFloat(metadata.commission || '10') // default to 10%
+          commissionRate: parseFloat(metadata.commission || '10'), // default to 10%
+          address: addr ? {
+            governorate_id: addr.governorate_id || '',
+            governorate_name_ar: addr.governorates?.name_ar || '',
+            governorate_name_en: addr.governorates?.name_en || '',
+            city: addr.city || '',
+            street: addr.street || '',
+            building: addr.building || '',
+            floor: addr.floor || '',
+            notes: addr.notes || ''
+          } : null
         });
       }
     });
@@ -91,7 +118,8 @@ export async function GET() {
             merchant_name: merchant.merchantName,
             merchant_email: merchant.merchantEmail,
             merchant_phone: merchant.merchantPhone,
-            commission_rate: merchant.commissionRate
+            commission_rate: merchant.commissionRate,
+            address: merchant.address
           }
         };
       });
