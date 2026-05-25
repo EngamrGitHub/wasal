@@ -18,11 +18,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (productError) throw productError;
 
     // Apply smart pricing logic for the public storefront: 
-    // Final Price = (Original Price * 1.25) + 48.5 (Hidden Shipping)
+    // Final Price = ceil((Original Price * 1.25) + 50)
     if (productData && productData.product_variants) {
       productData.product_variants.forEach((variant: any) => {
         variant.original_price = variant.price;
-        variant.price = Number((variant.price * 1.25 + 48.5).toFixed(2));
+        variant.price = Math.ceil(variant.price * 1.25 + 50);
       });
     }
 

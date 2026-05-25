@@ -142,11 +142,11 @@ function CartCheckoutContent() {
   const selectedVariant = product?.product_variants?.find((v: any) => v.id === cartItem?.variantId) 
     || product?.product_variants?.[0];
   
-  // BasePrice is now the marked-up price from the API (Original * 1.25 + 48.5)
+  // BasePrice is now the marked-up price from the API (Original * 1.25 + 50)
   const displayProductPrice = Number(selectedVariant?.price || 350.00);
   
   // Calculate commission dynamically
-  const originalPrice = Math.max(0, (displayProductPrice - 48.5) / 1.25);
+  const originalPrice = Math.max(0, (displayProductPrice - 50) / 1.25);
   const platformCommissionPerItem = originalPrice * 0.25;
   const quantity = cartItem?.quantity || 1;
   const totalCommission = platformCommissionPerItem * quantity;
@@ -214,7 +214,7 @@ function CartCheckoutContent() {
           products_total: productsSubtotal,
           commission_total: totalCommission,
           fixed_shipping_price: displayShipping,
-          actual_shipping_cost: displayShipping + 48.5,
+          actual_shipping_cost: displayShipping + 50,
           discount_id: appliedCoupon?.couponId || null,
           discount_amount: discountAmount,
           final_price: finalPrice,
