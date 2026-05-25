@@ -17,6 +17,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     if (productError) throw productError;
 
+    // Apply smart pricing logic for the public storefront: 
+    // Final Price = (Original Price * 1.25) + 48.5 (Hidden Shipping)
+    if (productData && productData.product_variants) {
+      productData.product_variants.forEach((variant: any) => {
+        variant.original_price = variant.price;
+        variant.price = Number((variant.price * 1.25 + 48.5).toFixed(2));
+      });
+    }
+
     return NextResponse.json(productData);
   } catch (err: any) {
     console.error('Error fetching product details via admin:', err);

@@ -22,6 +22,19 @@ export const ProductService = {
       console.error('Error fetching products:', error.message);
       throw new Error(error.message);
     }
+
+    // Apply smart pricing logic for the public storefront: 
+    // Final Price = (Original Price * 1.25) + 48.5 (Hidden Shipping)
+    if (data) {
+      data.forEach((product: any) => {
+        if (product.product_variants) {
+          product.product_variants.forEach((variant: any) => {
+            variant.original_price = variant.price;
+            variant.price = Number((variant.price * 1.25 + 48.5).toFixed(2));
+          });
+        }
+      });
+    }
     
     return data as unknown as Product[];
   },

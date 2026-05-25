@@ -141,14 +141,18 @@ function CartCheckoutContent() {
   // 🧮 Calculations for hidden shipping logic
   const selectedVariant = product?.product_variants?.find((v: any) => v.id === cartItem?.variantId) 
     || product?.product_variants?.[0];
-  const basePrice = Number(selectedVariant?.price || 350.00);
   
-  // Display shipping is the actual shipping cost of the chosen governorate.
-  const displayShipping = Number(actualShippingPrice);
+  // BasePrice is now the marked-up price from the API (Original * 1.25 + 48.5)
+  const displayProductPrice = Number(selectedVariant?.price || 350.00);
   
-  // Product price is the clean basePrice
-  const displayProductPrice = basePrice;
+  // Calculate commission dynamically
+  const originalPrice = Math.max(0, (displayProductPrice - 48.5) / 1.25);
+  const platformCommissionPerItem = originalPrice * 0.25;
   const quantity = cartItem?.quantity || 1;
+  const totalCommission = platformCommissionPerItem * quantity;
+  
+  // Display shipping is the "Normal Shipping" cost of the chosen governorate.
+  const displayShipping = Number(actualShippingPrice);
   const productsSubtotal = displayProductPrice * quantity;
   const discountAmount = appliedCoupon?.discountAmount || 0;
   const finalPrice = productsSubtotal + displayShipping - discountAmount;
@@ -208,9 +212,9 @@ function CartCheckoutContent() {
           user_id: guestId,
           governorate_id: selectedGovId,
           products_total: productsSubtotal,
-          commission_total: 0,
+          commission_total: totalCommission,
           fixed_shipping_price: displayShipping,
-          actual_shipping_cost: actualShippingPrice,
+          actual_shipping_cost: displayShipping + 48.5,
           discount_id: appliedCoupon?.couponId || null,
           discount_amount: discountAmount,
           final_price: finalPrice,
@@ -237,7 +241,7 @@ function CartCheckoutContent() {
           quantity: quantity,
           unit_price: displayProductPrice, // Save the combined price
           total_price: productsSubtotal,
-          commission_amount: 0 // No separate markup here
+          commission_amount: totalCommission // Explicitly calculated commission
         });
 
       if (itemError) throw itemError;
