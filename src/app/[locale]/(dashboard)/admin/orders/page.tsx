@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { Column, DataTable } from '@/src/components/admin/DataTable';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter, usePathname } from '@/src/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { 
   ShoppingBag, Calendar, CheckCircle2, AlertCircle, Loader2, RefreshCw,
-  Coins, User, Phone, Mail, Store
+  Coins, User, Phone, Mail, Store, Search
 } from 'lucide-react';
 import { createClient } from '@/src/lib/supabase/client';
 import { Loader } from '@/src/components/ui/Loader';
@@ -59,7 +60,7 @@ interface AdminOrderView {
   }[];
 }
 
-export default function AdminOrdersPage() {
+function AdminOrdersContent() {
   const t = useTranslations('Admin.Orders');
   const tCommon = useTranslations('Common');
   const locale = useLocale();
@@ -128,6 +129,8 @@ export default function AdminOrdersPage() {
 
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search')?.toLowerCase() || '';
+  const router = useRouter();
+  const pathname = usePathname();
 
 
 
@@ -138,12 +141,13 @@ export default function AdminOrdersPage() {
     return acc + orderComm;
   }, 0);
 
-  // Apply search query filtering
+  // Apply search query filtering (case-insensitive local state)
+  const normalizedQ = searchQuery.trim().toLowerCase();
   const filteredOrders = orders.filter(order => {
-    if (!searchQuery) return true;
+    if (!normalizedQ) return true;
     
     // 1. Check Order ID
-    if (order.id.toLowerCase().includes(searchQuery)) return true;
+    if (order.id.toLowerCase().includes(normalizedQ)) return true;
     
     // 2. Check Customer Shipping Info
     let cust = { name: '', phone: '', address: '', governorate: '' };
@@ -154,10 +158,10 @@ export default function AdminOrdersPage() {
           : JSON.parse(order.shipping_address);
       } catch {}
     }
-    if (cust.name?.toLowerCase().includes(searchQuery)) return true;
-    if (cust.phone?.toLowerCase().includes(searchQuery)) return true;
-    if (cust.address?.toLowerCase().includes(searchQuery)) return true;
-    if (cust.governorate?.toLowerCase().includes(searchQuery)) return true;
+    if (cust.name?.toLowerCase().includes(normalizedQ)) return true;
+    if (cust.phone?.toLowerCase().includes(normalizedQ)) return true;
+    if (cust.address?.toLowerCase().includes(normalizedQ)) return true;
+    if (cust.governorate?.toLowerCase().includes(normalizedQ)) return true;
 
     // 3. Check Order Items (Product name, SKU, Merchant store)
     return (order.order_items || []).some(sub => {
@@ -168,27 +172,30 @@ export default function AdminOrdersPage() {
       const storeEn = sub.merchant_details?.store_name_en?.toLowerCase() || '';
       const merchantName = sub.merchant_details?.merchant_name?.toLowerCase() || '';
 
-      return pTitleAr.includes(searchQuery) ||
-             pTitleEn.includes(searchQuery) ||
-             sku.includes(searchQuery) ||
-             storeAr.includes(searchQuery) ||
-             storeEn.includes(searchQuery) ||
-             merchantName.includes(searchQuery);
+      return pTitleAr.includes(normalizedQ) ||
+             pTitleEn.includes(normalizedQ) ||
+             sku.includes(normalizedQ) ||
+             storeAr.includes(normalizedQ) ||
+             storeEn.includes(normalizedQ) ||
+             merchantName.includes(normalizedQ);
     });
   });
-
-
 
   const columns: Column<AdminOrderView>[] = [
     { 
       header: t('columns.order_id') || 'Order ID', 
       accessorKey: 'id',
       cell: (item) => (
-        <div className="flex flex-col text-start">
-          <span className="text-xs text-gray-400 font-mono">{(item.id || '').slice(0, 8)}...</span>
-          <span className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            {new Date(item.created_at).toLocaleDateString('ar-EG')}
+        <div className="flex flex-col text-start gap-1">
+          <span 
+            className="text-xs font-bold font-mono bg-gray-100 text-gray-800 px-2.5 py-1 rounded-xl border border-gray-200 shadow-sm inline-block select-all hover:bg-gray-200 transition-all text-center" 
+            title={item.id}
+          >
+            #{item.id.slice(0, 8)}
+          </span>
+          <span className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1 font-semibold whitespace-nowrap">
+            <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            {new Date(item.created_at).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
         </div>
       )
@@ -210,15 +217,15 @@ export default function AdminOrdersPage() {
           }
         }
         return (
-          <div className="flex flex-col text-xs text-start space-y-1 bg-primary/5 p-3 rounded-2xl border border-primary/10 max-w-[280px]">
-            <span className="font-extrabold text-gray-900 text-sm flex items-center gap-1">
-              <User className="w-3.5 h-3.5 text-primary shrink-0" />
+          <div className="flex flex-col text-xs text-start space-y-1.5 bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100/60 min-w-[240px]">
+            <span className="font-extrabold text-gray-900 text-sm flex items-center gap-1.5">
+              <User className="w-4 h-4 text-blue-600 shrink-0" />
               {cust.name}
             </span>
-            <a href={`tel:${cust.phone}`} className="text-primary hover:underline font-bold flex items-center gap-1 font-mono text-sm">
+            <a href={`tel:${cust.phone}`} className="text-blue-700 hover:text-blue-900 hover:underline font-extrabold flex items-center gap-1 font-mono text-sm">
               📞 {cust.phone}
             </a>
-            <span className="text-[11px] text-gray-650 font-medium leading-relaxed mt-0.5">
+            <span className="text-[11px] text-gray-600 font-semibold leading-relaxed mt-1 border-t border-blue-100/60 pt-1">
               📍 {cust.governorate ? `${cust.governorate}: ` : ''}{cust.address}
             </span>
           </div>
@@ -231,7 +238,7 @@ export default function AdminOrdersPage() {
       cell: (item) => {
         const items = item.order_items || [];
         return (
-          <div className="flex flex-col gap-3 text-start min-w-[320px]">
+          <div className="flex flex-col gap-3 text-start min-w-[340px]">
             {items.map((sub, i) => {
               const pTitle = locale === 'ar' 
                 ? sub.products?.name_ar 
@@ -249,27 +256,27 @@ export default function AdminOrdersPage() {
                 || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100';
 
               return (
-                <div key={i} className="text-xs bg-gray-50 p-3 rounded-2xl border border-gray-100 flex flex-col space-y-2">
+                <div key={i} className="text-xs bg-gray-50/70 p-3.5 rounded-2xl border border-gray-150/60 flex flex-col space-y-2.5 shadow-sm">
                   {/* Product block */}
                   <div className="flex items-start gap-2.5">
-                    <img src={defaultImg} alt={pTitle} className="w-10 h-10 rounded-lg object-cover border border-gray-100 shrink-0 mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="font-extrabold text-gray-900 leading-tight">{pTitle}</span>
-                      <span className="text-[10px] text-gray-400 mt-0.5">SKU: {sub.variant?.sku || '—'}</span>
+                    <img src={defaultImg} alt={pTitle} className="w-11 h-11 rounded-xl object-cover border border-gray-200 shadow-sm shrink-0" />
+                    <div className="flex flex-col space-y-0.5">
+                      <span className="font-extrabold text-gray-900 leading-snug">{pTitle}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">SKU: {sub.variant?.sku || '—'}</span>
                     </div>
-                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-black ms-auto">
+                    <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-lg text-xs font-black ms-auto">
                       x{sub.quantity}
                     </span>
                   </div>
 
                   {/* Attributes */}
                   {(colorName || sizeName) && (
-                    <div className="text-[10px] text-gray-500 font-semibold flex items-center gap-2.5 bg-white p-1.5 rounded-lg border border-gray-50">
+                    <div className="text-[10px] text-gray-600 font-bold flex items-center gap-2.5 bg-white px-2.5 py-1.5 rounded-xl border border-gray-100 shadow-sm w-fit">
                       {colorName && (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           {colorHex && (
                             <span 
-                              className="w-3 h-3 rounded-full border border-gray-200 shadow-sm inline-block" 
+                              className="w-3.5 h-3.5 rounded-full border border-gray-200 shadow-sm inline-block shrink-0" 
                               style={{ backgroundColor: colorHex }}
                             />
                           )}
@@ -281,18 +288,18 @@ export default function AdminOrdersPage() {
                   )}
 
                   {/* Collapsible Merchant details */}
-                  <div className="bg-white p-2.5 rounded-xl border border-gray-100/80 flex flex-col space-y-1.5 text-[10px]">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-extrabold text-primary flex items-center gap-1">
-                        <Store className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate max-w-[120px]">{storeName}</span>
+                  <div className="bg-white p-3 rounded-xl border border-gray-100/90 flex flex-col space-y-2 text-[10px] shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-extrabold text-primary flex items-center gap-1.5">
+                        <Store className="w-4 h-4 shrink-0" />
+                        <span className="truncate max-w-[150px]">{storeName}</span>
                       </div>
                       <button
                         onClick={() => setExpandedMerchants(prev => ({
                           ...prev,
                           [`${item.id}_${i}`]: !prev[`${item.id}_${i}`]
                         }))}
-                        className="text-primary hover:text-white hover:bg-primary transition-all font-black text-[9px] bg-primary/5 px-2 py-0.5 rounded cursor-pointer shrink-0"
+                        className="text-primary hover:text-white hover:bg-primary transition-all font-black text-[9px] bg-primary/5 px-2.5 py-1 rounded-lg cursor-pointer shrink-0 border border-primary/10"
                       >
                         {expandedMerchants[`${item.id}_${i}`]
                           ? (locale === 'ar' ? 'إخفاء التفاصيل ❌' : 'Hide Details ❌')
@@ -303,15 +310,15 @@ export default function AdminOrdersPage() {
                     {expandedMerchants[`${item.id}_${i}`] && (
                       <div className="space-y-1.5 mt-1.5 pt-1.5 border-t border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
                         <div className="text-gray-500 flex items-center gap-1.5 font-semibold">
-                          <User className="w-3 h-3 text-gray-400 shrink-0" />
+                          <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span>{m.merchant_name}</span>
                         </div>
                         <div className="text-gray-500 flex items-center gap-1.5 font-mono">
-                          <Phone className="w-3 h-3 text-gray-400 shrink-0" />
+                          <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <a href={`tel:${m.merchant_phone}`} className="hover:underline text-primary font-bold">{m.merchant_phone}</a>
                         </div>
                         <div className="text-gray-500 flex items-center gap-1.5 font-mono">
-                          <Mail className="w-3 h-3 text-gray-400 shrink-0" />
+                          <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span>{m.merchant_email}</span>
                         </div>
                         {m.address ? (
@@ -359,9 +366,11 @@ export default function AdminOrdersPage() {
         const subtotal = items.reduce((acc, sub) => acc + ((sub.price_at_time || sub.unit_price || 0) * sub.quantity), 0);
         const shipping = Number(item.fixed_shipping_price || 0);
         return (
-          <div className="flex flex-col text-start">
-            <span className="font-black text-gray-900 text-sm">{(subtotal + shipping).toFixed(2)} EGP</span>
-            <span className="text-[10px] text-gray-400">({subtotal.toFixed(2)} + {shipping.toFixed(2)} {locale === 'ar' ? 'شحن' : 'ship'})</span>
+          <div className="flex flex-col text-start whitespace-nowrap">
+            <span className="font-black text-gray-900 text-base">{(subtotal + shipping).toFixed(2)} EGP</span>
+            <span className="text-[10px] text-gray-500 font-semibold bg-gray-100 px-2 py-0.5 rounded border border-gray-200 mt-1 max-w-fit text-center">
+              {subtotal.toFixed(2)} + {shipping.toFixed(2)} {locale === 'ar' ? 'شحن' : 'ship'}
+            </span>
           </div>
         );
       }
@@ -491,7 +500,27 @@ export default function AdminOrdersPage() {
             متابعة طلبات المتاجر، التحقق من بيانات التجار والتواصل معهم، وتتبع عمولات المنصة وأرباح الشحن.
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className={`absolute ${locale === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400`} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                const params = new URLSearchParams(searchParams.toString());
+                if (val) {
+                  params.set('search', val);
+                } else {
+                  params.delete('search');
+                }
+                router.replace(`${pathname}?${params.toString()}` as any);
+              }}
+              placeholder={locale === 'ar' ? 'بحث بالاسم، الهاتف، المنتج...' : 'Search by name, phone, product...'}
+              className={`h-10 w-64 bg-gray-50 border border-gray-200 focus:bg-white focus:border-primary rounded-xl text-sm outline-none transition-all ${locale === 'ar' ? 'pr-9 pl-4' : 'pl-9 pr-4'}`}
+            />
+          </div>
           <button 
             onClick={fetchOrders}
             className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all font-semibold text-sm text-gray-700 shadow-sm"
@@ -579,5 +608,13 @@ export default function AdminOrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<Loader size="lg" text="جاري تحميل الطلبات..." />}>
+      <AdminOrdersContent />
+    </Suspense>
   );
 }
