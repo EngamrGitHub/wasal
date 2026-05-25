@@ -100,6 +100,7 @@
       "APPROVED": "Approved",
       "PENDING_APPROVAL": "Pending Admin Approval",
       "REJECTED": "Rejected",
+      "SHIPPED": "Shipped",
       "DELIVERED": "Delivered",
       "PROCESSING": "Processing",
       "PENDING": "Pending",

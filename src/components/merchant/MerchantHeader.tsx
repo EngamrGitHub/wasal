@@ -48,6 +48,16 @@ export function MerchantHeader() {
           <input
             type="text"
             placeholder={t('search_placeholder')}
+            onChange={(e) => {
+              const url = new URL(window.location.href);
+              if (e.target.value) {
+                url.searchParams.set('search', e.target.value);
+              } else {
+                url.searchParams.delete('search');
+              }
+              window.history.replaceState({}, '', url);
+              window.dispatchEvent(new Event('popstate'));
+            }}
             className={`h-10 w-64 bg-gray-50 border-transparent focus:bg-white focus:border-primary border-2 rounded-full text-sm outline-none transition-all ${locale === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
           />
         </div>

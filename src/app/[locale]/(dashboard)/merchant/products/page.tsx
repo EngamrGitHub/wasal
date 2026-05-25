@@ -8,12 +8,16 @@ import { Loader } from '@/src/components/ui/Loader';
 import { Plus, Info, X, AlertTriangle, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link } from '@/src/i18n/routing';
 import { createClient } from '@/src/lib/supabase/client';
+import { useSearchParams } from 'next/navigation';
 
 export default function MerchantProductsPage() {
   const t = useTranslations('Merchant.Products');
   const tCommon = useTranslations('Common');
   const locale = useLocale();
   const isRtl = locale === 'ar';
+  
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search')?.trim() || '';
 
   // State Management
   const [products, setProducts] = useState<Product[]>([]);
@@ -62,6 +66,10 @@ export default function MerchantProductsPage() {
         query = query.eq('store_id', storeId);
       }
 
+      if (searchQuery) {
+        query = query.or(`name_ar.ilike.%${searchQuery}%,name_en.ilike.%${searchQuery}%`);
+      }
+
       const { data, count, error: fetchError } = await query
         .range(from, to)
         .order('created_at', { ascending: false });
@@ -80,7 +88,7 @@ export default function MerchantProductsPage() {
 
   useEffect(() => {
     fetchProducts(currentPage);
-  }, [currentPage]);
+  }, [currentPage, searchQuery]);
 
   // Handle Edit Price
   const handleUpdatePrice = async (e: React.FormEvent) => {

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Column, DataTable } from '@/src/components/admin/DataTable';
 import { useTranslations, useLocale } from 'next-intl';
 import { Loader } from '@/src/components/ui/Loader';
+import { useSearchParams } from 'next/navigation';
 
 interface MerchantOrderItemView {
   id: string;
@@ -41,6 +42,8 @@ export default function MerchantOrdersPage() {
   const t = useTranslations('Merchant.Orders');
   const tCommon = useTranslations('Common');
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search')?.toLowerCase() || '';
   
   const [orderItems, setOrderItems] = useState<MerchantOrderItemView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,11 +75,26 @@ export default function MerchantOrdersPage() {
     fetchMerchantOrders();
   }, []);
 
+  const filteredOrders = orderItems.filter((item) => {
+    if (!searchQuery) return true;
+    const orderIdMatch = item.order_id.toLowerCase().includes(searchQuery);
+    
+    const titleAr = item.products?.name_ar || item.products?.title?.ar || '';
+    const titleEn = item.products?.name_en || item.products?.title?.en || '';
+    const productMatch = titleAr.toLowerCase().includes(searchQuery) || titleEn.toLowerCase().includes(searchQuery);
+    
+    return orderIdMatch || productMatch;
+  });
+
   const columns: Column<MerchantOrderItemView>[] = [
     { 
       header: t('columns.order_id') || 'Order ID', 
       accessorKey: 'order_id',
-      cell: (item) => <span className="text-xs text-gray-500 font-mono">{item.order_id.slice(0, 8)}...</span>
+      cell: (item) => (
+        <span className="text-sm font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-lg border border-primary/20 font-mono inline-block shadow-sm">
+          {item.order_id.split('-')[0]}
+        </span>
+      )
     },
     { 
       header: locale === 'ar' ? 'المنتج المطلوب' : 'Requested Product', 
@@ -228,14 +246,14 @@ export default function MerchantOrdersPage() {
         <div className="p-8 text-center text-red-500 bg-red-50 rounded-xl border border-red-100">
           Error: {error}
         </div>
-      ) : orderItems.length === 0 ? (
+      ) : filteredOrders.length === 0 ? (
         <div className="bg-gray-50 rounded-xl p-12 text-center border border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">{t('empty_title') || 'No Orders Yet'}</h3>
-          <p className="text-gray-500 mt-1">{t('empty_desc') || "You don't have any orders at the moment. Keep promoting your store!"}</p>
+          <h3 className="text-lg font-bold text-gray-900">{searchQuery ? (locale === 'ar' ? 'لا توجد نتائج بحث' : 'No search results') : (t('empty_title') || 'No Orders Yet')}</h3>
+          <p className="text-gray-500 mt-1">{searchQuery ? (locale === 'ar' ? 'لم يتم العثور على طلبات تطابق بحثك' : 'No orders match your search query') : (t('empty_desc') || "You don't have any orders at the moment. Keep promoting your store!")}</p>
         </div>
       ) : (
         <DataTable 
-          data={orderItems} 
+          data={filteredOrders} 
           columns={columns} 
           keyExtractor={(item) => item.id} 
         />

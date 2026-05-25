@@ -1,38 +1,35 @@
-'use client';
+import { createClient } from "@/src/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { AdminShell } from "@/src/components/admin/AdminShell";
 
-import React, { useState, useEffect } from "react";
-import { AdminHeader } from "@/src/components/admin/AdminHeader";
-import { AdminSidebar } from "@/src/components/admin/AdminSidebar";
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
+  params,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const resolvedParams = await params;
+  const locale = resolvedParams?.locale || 'ar';
 
-  useEffect(() => {
-    const saved = localStorage.getItem('admin_sidebar_collapsed');
-    if (saved === 'true') {
-      setIsCollapsed(true);
-    }
-  }, []);
+  const supabase = await createClient();
+  if (!supabase) {
+    redirect(`/${locale}/login`);
+  }
 
-  const toggleSidebar = () => {
-    const newVal = !isCollapsed;
-    setIsCollapsed(newVal);
-    localStorage.setItem('admin_sidebar_collapsed', String(newVal));
-  };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect(`/${locale}/login`);
+  }
+
+  const role = user.user_metadata?.role;
+  if (role !== 'ADMIN') {
+    redirect(`/${locale}`);
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50">
-      <AdminSidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
-        <AdminHeader isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-4 lg:p-8">
-          {children}
-        </main>
-      </div>
-    </div>
+    <AdminShell>
+      {children}
+    </AdminShell>
   );
 }
