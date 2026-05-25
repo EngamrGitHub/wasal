@@ -78,14 +78,14 @@ export async function POST(req: Request) {
     const { error: orderErr } = await supabaseAdmin
       .from('orders')
       .update({
-        total_amount: newSubtotal,
+        products_total: newSubtotal,
         final_price: newFinalPrice
       })
       .eq('id', orderId);
 
     if (orderErr) throw orderErr;
 
-    return NextResponse.json({ success: true, total_amount: newSubtotal, final_price: newFinalPrice });
+    return NextResponse.json({ success: true, products_total: newSubtotal, final_price: newFinalPrice });
   } catch (err: any) {
     console.error('API Error in admin orders update POST:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
