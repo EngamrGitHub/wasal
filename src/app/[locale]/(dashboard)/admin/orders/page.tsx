@@ -117,6 +117,31 @@ function AdminOrdersContent() {
   const [selectedOrderItems, setSelectedOrderItems] = useState<AdminOrderView | null>(null);
   const [isItemsModalOpen, setIsItemsModalOpen] = useState(false);
   const [tempItems, setTempItems] = useState<any[]>([]);
+  const [editingVariantItemId, setEditingVariantItemId] = useState<string | null>(null);
+  const [availableVariants, setAvailableVariants] = useState<any[]>([]);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  const handleFetchVariants = async (productId: string, itemId: string) => {
+    try {
+      if (editingVariantItemId === itemId) {
+        setEditingVariantItemId(null);
+        return;
+      }
+      setEditingVariantItemId(itemId);
+      setLoadingVariants(true);
+      const supabase = createClient();
+      if (!supabase) return;
+      const { data } = await supabase.from('product_variants')
+        .select('*, colors(*), sizes(*)')
+        .eq('product_id', productId)
+        .eq('is_active', true);
+      setAvailableVariants(data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingVariants(false);
+    }
+  };
 
   const handleItemsUpdate = async () => {
     if (!selectedOrderItems) return;
@@ -872,12 +897,52 @@ function AdminOrdersContent() {
                       <img src={img} alt={title} className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0" />
                       <div className="min-w-0 flex flex-col space-y-0.5">
                         <span className="font-extrabold text-xs text-gray-900 truncate leading-snug">{title}</span>
-                        <div className="flex items-center gap-2 text-[10px] text-gray-400 font-semibold">
-                          <span>SKU: {sku}</span>
-                          {(color || size) && (
-                            <span className="text-gray-500 bg-white px-1.5 py-0.5 rounded-md border border-gray-250/50">
-                              {color ? `${color}` : ''} {size ? `| ${size}` : ''}
-                            </span>
+                        <div className="flex flex-col gap-1.5 mt-1">
+                          <div className="flex items-center gap-2 text-[10px] text-gray-400 font-semibold">
+                            <span>SKU: {sku}</span>
+                            {(color || size) && (
+                              <span className="text-gray-500 bg-white px-1.5 py-0.5 rounded-md border border-gray-250/50">
+                                {color ? `${color}` : ''} {size ? `| ${size}` : ''}
+                              </span>
+                            )}
+                            <button 
+                              onClick={() => handleFetchVariants(item.product_id, item.id)}
+                              className="p-1 hover:bg-gray-150 rounded-md text-primary transition-colors cursor-pointer"
+                              title={locale === 'ar' ? 'تعديل اللون والمقاس' : 'Edit Color/Size'}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </button>
+                          </div>
+                          {editingVariantItemId === item.id && (
+                            <div className="bg-white border border-primary/20 rounded-xl p-2 shadow-sm animate-in fade-in slide-in-from-top-1 w-full max-w-[200px]">
+                              {loadingVariants ? (
+                                <div className="flex items-center justify-center p-1"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
+                              ) : availableVariants.length === 0 ? (
+                                <div className="text-[10px] text-gray-400 text-center">{locale === 'ar' ? 'لا توجد خيارات أخرى متاحة.' : 'No other variants available.'}</div>
+                              ) : (
+                                <select
+                                  className="w-full text-[11px] p-1.5 bg-gray-50 border border-gray-200 rounded-lg outline-none cursor-pointer"
+                                  value={item.variant_id || ''}
+                                  onChange={(e) => {
+                                    const selVar = availableVariants.find(v => v.id === e.target.value);
+                                    if (selVar) {
+                                      setTempItems(prev => prev.map(p => p.id === item.id ? { 
+                                        ...p, 
+                                        variant_id: selVar.id, 
+                                        variant: selVar 
+                                      } : p));
+                                      setEditingVariantItemId(null);
+                                    }
+                                  }}
+                                >
+                                  {availableVariants.map(v => (
+                                    <option key={v.id} value={v.id}>
+                                      {v.colors?.name ? v.colors.name : ''} {v.sizes?.name ? `| ${v.sizes.name}` : ''} - {v.price} EGP
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
                           )}
                         </div>
                         <span className="text-xs font-black text-primary font-mono mt-0.5">{price} EGP</span>

@@ -48,10 +48,10 @@ export async function POST(req: Request) {
       if (delErr) throw delErr;
     }
 
-    // 5. Update changed items (quantity and commission recalculation)
+    // 5. Update changed items (quantity, variant, and commission recalculation)
     for (const item of tempItems) {
       const original = originalItems.find(o => o.id === item.id);
-      if (original && original.quantity !== item.quantity) {
+      if (original && (original.quantity !== item.quantity || original.variant_id !== item.variant_id)) {
         const singleCommission = (original.commission_amount || 0) / original.quantity;
         const newCommission = singleCommission * item.quantity;
 
@@ -59,7 +59,8 @@ export async function POST(req: Request) {
           .from('order_items')
           .update({ 
             quantity: item.quantity,
-            commission_amount: newCommission
+            commission_amount: newCommission,
+            variant_id: item.variant_id
           })
           .eq('id', item.id);
         if (updErr) throw updErr;
