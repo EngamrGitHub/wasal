@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { 
   ShoppingBag, Calendar, CheckCircle2, AlertCircle, Loader2, RefreshCw,
-  Coins, User, Phone, Mail, Store, ChevronLeft, ChevronRight
+  Coins, User, Phone, Mail, Store
 } from 'lucide-react';
 import { createClient } from '@/src/lib/supabase/client';
 import { Loader } from '@/src/components/ui/Loader';
@@ -70,9 +70,6 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [expandedMerchants, setExpandedMerchants] = useState<Record<string, boolean>>({});
 
   const fetchOrders = async () => {
@@ -88,7 +85,6 @@ export default function AdminOrdersPage() {
 
       const data = await response.json();
       setOrders(data || []);
-      setCurrentPage(1); // Reset page on refresh
     } catch (err: any) {
       console.error('Error fetching admin orders:', err);
       setError(err.message || 'Failed to load orders');
@@ -133,10 +129,7 @@ export default function AdminOrdersPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search')?.toLowerCase() || '';
 
-  // Reset page when search query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+
 
   // Calculate total platform commissions from all orders
   const totalPlatformCommissions = orders.reduce((acc, order) => {
@@ -184,11 +177,7 @@ export default function AdminOrdersPage() {
     });
   });
 
-  // Paginated Orders Slicing
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
 
   const columns: Column<AdminOrderView>[] = [
     { 
@@ -580,70 +569,13 @@ export default function AdminOrdersPage() {
           <p className="text-gray-400 mt-1">جرب البحث بكلمات أخرى أو أرقام هواتف مختلفة.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between">
-          <div className="overflow-x-auto">
-            <DataTable 
-              data={currentOrders} 
-              columns={columns} 
-              keyExtractor={(item) => item.id} 
-              hidePagination={true}
-            />
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 bg-gray-50/50 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold">
-                <span>إظهار</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-2.5 py-1 bg-white border border-gray-200 rounded-lg outline-none cursor-pointer focus:border-primary font-bold text-gray-700"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-                <span>طلبات من إجمالي {filteredOrders.length} طلب</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:text-primary transition-all disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-gray-400 text-gray-500"
-                >
-                  {locale === 'ar' ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`min-w-9 h-9 flex items-center justify-center rounded-xl text-xs font-black transition-all ${
-                      currentPage === page
-                        ? 'bg-primary text-white shadow-md shadow-primary/20'
-                        : 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-600'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev + 1, 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:text-primary transition-all disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-gray-400 text-gray-500"
-                >
-                  {locale === 'ar' ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <DataTable 
+            data={filteredOrders} 
+            columns={columns} 
+            keyExtractor={(item) => item.id}
+            itemsPerPage={10}
+          />
         </div>
       )}
     </div>
