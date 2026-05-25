@@ -46,12 +46,47 @@ export async function POST(req: Request) {
         .delete()
         .eq('id', item.id);
       if (delErr) throw delErr;
+
+      // Restore stock for deleted item
+      if (item.variant_id) {
+        const { data: vData } = await supabaseAdmin.from('product_variants').select('stock_quantity').eq('id', item.variant_id).single();
+        if (vData) {
+          await supabaseAdmin.from('product_variants').update({ stock_quantity: vData.stock_quantity + item.quantity }).eq('id', item.variant_id);
+        }
+      }
     }
 
     // 5. Update changed items (quantity, variant, and commission recalculation)
     for (const item of tempItems) {
       const original = originalItems.find(o => o.id === item.id);
       if (original && (original.quantity !== item.quantity || original.variant_id !== item.variant_id)) {
+        
+        // Stock adjustment logic
+        if (original.variant_id === item.variant_id) {
+          // Same variant, quantity changed
+          const diff = item.quantity - original.quantity;
+          if (diff !== 0 && item.variant_id) {
+            const { data: vData } = await supabaseAdmin.from('product_variants').select('stock_quantity').eq('id', item.variant_id).single();
+            if (vData) {
+              await supabaseAdmin.from('product_variants').update({ stock_quantity: Math.max(0, vData.stock_quantity - diff) }).eq('id', item.variant_id);
+            }
+          }
+        } else {
+          // Variant changed: Restore original, deduct from new
+          if (original.variant_id) {
+            const { data: oldV } = await supabaseAdmin.from('product_variants').select('stock_quantity').eq('id', original.variant_id).single();
+            if (oldV) {
+               await supabaseAdmin.from('product_variants').update({ stock_quantity: oldV.stock_quantity + original.quantity }).eq('id', original.variant_id);
+            }
+          }
+          if (item.variant_id) {
+            const { data: newV } = await supabaseAdmin.from('product_variants').select('stock_quantity').eq('id', item.variant_id).single();
+            if (newV) {
+               await supabaseAdmin.from('product_variants').update({ stock_quantity: Math.max(0, newV.stock_quantity - item.quantity) }).eq('id', item.variant_id);
+            }
+          }
+        }
+
         const singleCommission = (original.commission_amount || 0) / original.quantity;
         const newCommission = singleCommission * item.quantity;
 

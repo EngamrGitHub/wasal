@@ -935,11 +935,17 @@ function AdminOrdersContent() {
                                     }
                                   }}
                                 >
-                                  {availableVariants.map(v => (
-                                    <option key={v.id} value={v.id}>
-                                      {v.colors?.name ? v.colors.name : ''} {v.sizes?.name ? `| ${v.sizes.name}` : ''} - {v.price} EGP
-                                    </option>
-                                  ))}
+                                  {availableVariants.map(v => {
+                                    const cName = v.colors?.name || '';
+                                    const sName = v.sizes?.name || '';
+                                    const variantLabel = [cName, sName].filter(Boolean).join(' | ');
+                                    const skuLabel = v.sku ? `SKU: ${v.sku}` : '';
+                                    return (
+                                      <option key={v.id} value={v.id}>
+                                        {skuLabel} {variantLabel ? `- ${variantLabel}` : ''} - {v.price} EGP
+                                      </option>
+                                    );
+                                  })}
                                 </select>
                               )}
                             </div>

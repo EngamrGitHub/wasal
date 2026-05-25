@@ -242,6 +242,16 @@ function CartCheckoutContent() {
 
       if (itemError) throw itemError;
 
+      // Decrement stock securely
+      const variantToUpdateId = selectedVariant?.id || product?.product_variants?.[0]?.id;
+      if (variantToUpdateId) {
+        await fetch('/api/products/decrement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ variantId: variantToUpdateId, quantity: quantity })
+        }).catch(err => console.error('Failed to decrement stock:', err));
+      }
+
       // Increment coupon usage if one was applied
       if (appliedCoupon?.couponId) {
         await fetch('/api/coupons/use', {
