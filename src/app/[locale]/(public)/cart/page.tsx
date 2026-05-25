@@ -254,7 +254,6 @@ function CartCheckoutContent() {
 
       localStorage.removeItem('wesal_cart');
       window.dispatchEvent(new Event('wesal_cart_updated'));
-
       // Build WhatsApp confirmation message
       const govName = governorates.find(g => g.id === selectedGovId);
       const govLabel = locale === 'ar' ? govName?.name_ar : govName?.name_en;
@@ -264,6 +263,31 @@ function CartCheckoutContent() {
       const colorName = selectedVariant?.colors?.name || '';
       const sizeName = selectedVariant?.sizes?.name || '';
       const variantLine = [colorName, sizeName].filter(Boolean).join(' - ');
+
+      // 3. Send Automatic WhatsApp notification (Meta Cloud API)
+      try {
+        const prodImgUrl = selectedVariant?.image_url
+          || product?.product_images?.find((img: any) => img.is_main)?.image_url 
+          || product?.product_images?.[0]?.image_url 
+          || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500';
+
+        await fetch('/api/whatsapp/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: phone,
+            orderId: orderData.id,
+            itemCount: quantity,
+            productName: pName,
+            shippingPrice: displayShipping,
+            totalPrice: finalPrice,
+            imageUrl: prodImgUrl,
+            locale: locale
+          })
+        });
+      } catch (waErr) {
+        console.error('Error triggering automated WhatsApp notification:', waErr);
+      }
 
       const msgLines = locale === 'ar'
         ? [
