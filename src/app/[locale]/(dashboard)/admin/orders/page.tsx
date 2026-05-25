@@ -7,7 +7,7 @@ import { useRouter, usePathname } from '@/src/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { 
   ShoppingBag, Calendar, CheckCircle2, AlertCircle, Loader2, RefreshCw,
-  Coins, User, Phone, Mail, Store, Search
+  Coins, User, Phone, Mail, Store, Search, Edit, X
 } from 'lucide-react';
 import { createClient } from '@/src/lib/supabase/client';
 import { Loader } from '@/src/components/ui/Loader';
@@ -72,6 +72,48 @@ function AdminOrdersContent() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [expandedMerchants, setExpandedMerchants] = useState<Record<string, boolean>>({});
+
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrderView | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    phone: '',
+    governorate: '',
+    address: ''
+  });
+
+  const handleAddressUpdate = async (orderId: string, updatedForm: typeof editForm) => {
+    try {
+      setUpdatingId(orderId);
+      setError(null);
+      setSuccess(null);
+
+      const supabase = createClient();
+      if (!supabase) throw new Error('Supabase client not initialized');
+
+      // The database stores shipping_address as a jsonb or string.
+      // We will write the updatedAddress object directly.
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ shipping_address: updatedForm })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+
+      // Update local state immediately
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, shipping_address: updatedForm } : o));
+      setSuccess(locale === 'ar' ? 'تم تحديث بيانات العميل والشحن بنجاح! 📍✅' : 'Customer & Shipping details updated successfully!');
+      
+      setTimeout(() => setSuccess(null), 3000);
+      setIsEditModalOpen(false);
+      setSelectedOrder(null);
+    } catch (err: any) {
+      console.error('Error updating order address:', err);
+      setError(err.message || 'Failed to update shipping details');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -217,8 +259,26 @@ function AdminOrdersContent() {
           }
         }
         return (
-          <div className="flex flex-col text-xs text-start space-y-1.5 bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100/60 min-w-[240px]">
-            <span className="font-extrabold text-gray-900 text-sm flex items-center gap-1.5">
+          <div className="relative flex flex-col text-xs text-start space-y-1.5 bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100/60 min-w-[240px] group">
+            {/* Edit button absolute positioned */}
+            <button
+              onClick={() => {
+                setSelectedOrder(item);
+                setEditForm({
+                  name: cust.name || '',
+                  phone: cust.phone || '',
+                  governorate: cust.governorate || '',
+                  address: cust.address || ''
+                });
+                setIsEditModalOpen(true);
+              }}
+              className="absolute top-2.5 end-2.5 p-1.5 bg-white/90 hover:bg-white text-blue-600 hover:text-blue-800 rounded-lg shadow-sm border border-blue-100/50 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+              title={locale === 'ar' ? 'تعديل بيانات العميل والشحن ✏️' : 'Edit Customer & Shipping ✏️'}
+            >
+              <Edit className="w-3.5 h-3.5" />
+            </button>
+            
+            <span className="font-extrabold text-gray-900 text-sm flex items-center gap-1.5 pr-6">
               <User className="w-4 h-4 text-blue-600 shrink-0" />
               {cust.name}
             </span>
@@ -605,6 +665,105 @@ function AdminOrdersContent() {
             keyExtractor={(item) => item.id}
             itemsPerPage={10}
           />
+        </div>
+      )}
+      {/* Edit Shipping Modal */}
+      {isEditModalOpen && selectedOrder && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-2 text-primary font-black">
+                <Edit className="w-5 h-5" />
+                <h3 className="text-lg">
+                  {locale === 'ar' ? 'تعديل بيانات الشحن للعميل' : 'Edit Customer Shipping'}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedOrder(null);
+                }}
+                className="p-1.5 hover:bg-gray-150 rounded-xl transition-all text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-extrabold text-gray-700 block">
+                  {locale === 'ar' ? '👤 اسم العميل' : '👤 Customer Name'}
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full h-11 px-4 bg-gray-50 border border-gray-250 focus:bg-white focus:border-primary rounded-xl text-sm outline-none transition-all font-semibold"
+                />
+              </div>
+
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-extrabold text-gray-700 block">
+                  {locale === 'ar' ? '📞 رقم الهاتف' : '📞 Phone Number'}
+                </label>
+                <input
+                  type="text"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                  className="w-full h-11 px-4 bg-gray-50 border border-gray-250 focus:bg-white focus:border-primary rounded-xl text-sm outline-none transition-all font-semibold font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-extrabold text-gray-700 block">
+                  {locale === 'ar' ? '📍 المحافظة' : '📍 Governorate'}
+                </label>
+                <input
+                  type="text"
+                  value={editForm.governorate}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, governorate: e.target.value }))}
+                  className="w-full h-11 px-4 bg-gray-50 border border-gray-250 focus:bg-white focus:border-primary rounded-xl text-sm outline-none transition-all font-semibold"
+                />
+              </div>
+
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-extrabold text-gray-700 block">
+                  {locale === 'ar' ? '🏠 العنوان بالتفصيل' : '🏠 Detailed Address'}
+                </label>
+                <textarea
+                  value={editForm.address}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                  rows={3}
+                  className="w-full p-4 bg-gray-50 border border-gray-250 focus:bg-white focus:border-primary rounded-xl text-sm outline-none transition-all font-semibold leading-relaxed"
+                />
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedOrder(null);
+                }}
+                className="px-4 py-2.5 text-xs font-extrabold text-gray-500 hover:text-gray-700 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer hover:bg-gray-50 shadow-sm"
+              >
+                {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                onClick={() => handleAddressUpdate(selectedOrder.id, editForm)}
+                className="px-5 py-2.5 text-xs font-black text-white bg-primary hover:bg-primary/90 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5 cursor-pointer"
+              >
+                {updatingId === selectedOrder.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  locale === 'ar' ? 'حفظ التعديلات ✅' : 'Save Changes ✅'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
