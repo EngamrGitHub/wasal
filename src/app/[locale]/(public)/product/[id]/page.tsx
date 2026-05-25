@@ -152,6 +152,10 @@ export default function ProductDetailPage() {
   const displayTitle = isRtl ? (product.name_ar || product.name_en) : (product.name_en || product.name_ar);
   const displayDesc = isRtl ? (product.description_ar || product.description_en) : (product.description_en || product.description_ar);
   const displayPrice = selectedVariant?.price || 0;
+  const fakeOriginalPrice = (selectedVariant as any)?.fake_original_price || 0;
+  const fakeRating = (product as any)?.fake_rating || 4.7;
+  const fakeReviews = (product as any)?.fake_reviews || 142;
+  const discountPct = (product as any)?.fake_discount_pct || 0;
   const inStock = (selectedVariant?.stock_quantity || 0) > 0;
 
   return (
@@ -227,16 +231,23 @@ export default function ProductDetailPage() {
             
             {/* Category Tag & Rating */}
             <div className="flex flex-wrap items-center gap-4 justify-between">
-              {category && (
-                <Link href={`/categories/${category.id}`} className="bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs px-3 py-1.5 rounded-full transition-all">
-                  {isRtl ? category.name_ar : category.name_en}
-                </Link>
-              )}
+              <div className="flex items-center gap-3">
+                {category && (
+                  <Link href={`/categories/${category.id}`} className="bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs px-3 py-1.5 rounded-full transition-all">
+                    {isRtl ? category.name_ar : category.name_en}
+                  </Link>
+                )}
+                {discountPct > 0 && (
+                  <span className="bg-red-500 text-white font-black text-xs px-2.5 py-1 rounded-full shadow-sm">
+                    -{discountPct}%
+                  </span>
+                )}
+              </div>
               
               <div className="flex items-center gap-1.5 bg-yellow-50 px-3 py-1.5 rounded-full">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm font-black text-yellow-700">4.7</span>
-                <span className="text-xs text-yellow-600/80">(142)</span>
+                <span className="text-sm font-black text-yellow-700">{fakeRating}</span>
+                <span className="text-xs text-yellow-600/80">({fakeReviews})</span>
               </div>
             </div>
 
@@ -246,12 +257,19 @@ export default function ProductDetailPage() {
             </h1>
 
             {/* Price section (Dynamically changes with variant selection!) */}
-            <div className="flex items-baseline gap-4 py-4 border-y border-gray-100">
-              <span className="text-3xl font-black text-primary">
-                {displayPrice.toFixed(2)} {isRtl ? 'ج.م' : 'EGP'}
-              </span>
+            <div className="flex flex-col gap-1 py-4 border-y border-gray-100">
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl font-black text-red-600">
+                  {displayPrice} {isRtl ? 'ج.م' : 'EGP'}
+                </span>
+                {fakeOriginalPrice > 0 && (
+                  <span className="text-lg text-gray-400 line-through font-semibold">
+                    {fakeOriginalPrice} {isRtl ? 'ج.م' : 'EGP'}
+                  </span>
+                )}
+              </div>
               {selectedVariant && (
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-md border ${
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-md border w-fit ${
                   inStock ? 'bg-success/5 text-success border-success/10' : 'bg-red-50 text-red-500 border-red-100'
                 }`}>
                   {inStock 

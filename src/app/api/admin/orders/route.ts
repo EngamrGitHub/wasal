@@ -96,7 +96,7 @@ export async function GET() {
     // 6. Filter and Map orders
     const processedOrders = (orders || []).map(order => {
       const items = order.order_items || [];
-      
+
       // Filter out items that have no store/merchant or whose product doesn't exist
       const validItems = items.filter((item: any) => {
         const storeId = item.products?.store_id;

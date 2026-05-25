@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 
+// Deterministic fake data generator (same as productService.ts)
+function getFakeProductData(productId: string) {
+  let hash = 0;
+  for (let i = 0; i < productId.length; i++) {
+    hash = (hash * 31 + productId.charCodeAt(i)) & 0x7fffffff;
+  }
+  const rating = parseFloat((4.1 + (hash % 8) * 0.1).toFixed(1));
+  const reviews = 47 + (hash % 290);
+  const discountPct = 15 + (hash % 26);
+  return { rating, reviews, discountPct };
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -17,13 +29,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     if (productError) throw productError;
 
-    // Apply smart pricing logic for the public storefront: 
-    // Final Price = ceil((Original Price * 1.25) + 50)
-    if (productData && productData.product_variants) {
-      productData.product_variants.forEach((variant: any) => {
-        variant.original_price = variant.price;
-        variant.price = Math.ceil(variant.price * 1.25 + 50);
-      });
+    // Apply smart pricing + fake social proof
+    if (productData) {
+      const fakeData = getFakeProductData(productData.id);
+      productData.fake_rating = fakeData.rating;
+      productData.fake_reviews = fakeData.reviews;
+      productData.fake_discount_pct = fakeData.discountPct;
+
+      if (productData.product_variants) {
+        productData.product_variants.forEach((variant: any) => {
+          variant.original_price = variant.price;
+          const finalPrice = Math.ceil(variant.price * 1.25 + 50);
+          variant.price = finalPrice;
+          variant.fake_original_price = Math.ceil(finalPrice * (1 + fakeData.discountPct / 100));
+        });
+      }
     }
 
     return NextResponse.json(productData);

@@ -1,6 +1,6 @@
 import { Link } from '@/src/i18n/routing';
 import Image from 'next/image';
-import { ShoppingCart, Star, Trash2, Truck } from 'lucide-react';
+import { ShoppingCart, Star, Trash2 } from 'lucide-react';
 import { Product } from '@/src/types';
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
@@ -40,19 +40,20 @@ export function ProductCard({
   const isRtl = locale === 'ar';
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Extract from product object if provided, otherwise fallback to direct props
   const productId = product?.id || id || '';
-  
-  // Handle complex product structure from ERD
   const defaultVariant = product?.product_variants?.[0];
   const defaultImage = product?.product_images?.find(img => img.is_main)?.image_url 
     || product?.product_images?.[0]?.image_url 
     || defaultVariant?.image_url;
 
   const displayPrice = product ? (defaultVariant?.price || 0) : (price || 0);
+  const fakeOriginalPrice = (defaultVariant as any)?.fake_original_price || 0;
+  const discountPct = (product as any)?.fake_discount_pct || 0;
+  const fakeRating = (product as any)?.fake_rating || rating;
+  const fakeReviews = (product as any)?.fake_reviews || reviews;
+
   const displayImage = product ? (defaultImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80') : (image || '');
   
-  // Title logic for both old (title.ar) and new (name_ar) schemas
   let displayTitle = '';
   if (product) {
     displayTitle = locale === 'ar' ? (product.name_ar || (product as any).title?.ar) : (product.name_en || (product as any).title?.en);
@@ -67,7 +68,14 @@ export function ProductCard({
   return (
     <div className="group bg-white border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full rounded-sm overflow-hidden relative">
       
-      {/* Top Left Badge (e.g. Best Seller or Eid Offer) */}
+      {/* Discount Badge */}
+      {discountPct > 0 && !isMerchant && (
+        <div className={`absolute top-2 ${isRtl ? 'right-2' : 'left-2'} z-10 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm`}>
+          -{discountPct}%
+        </div>
+      )}
+
+      {/* Status Badge (merchant mode) */}
       {badge ? (
         <div className="absolute top-0 left-0 z-10 w-full flex justify-between items-start">
           <div className="bg-[#0f4d81] text-white text-[10px] font-bold px-2 py-1 rounded-br-lg">
@@ -97,7 +105,7 @@ export function ProductCard({
           />
         </Link>
         
-        {/* Real Color Swatches from Variants */}
+        {/* Color Swatches */}
         {(() => {
           const variantsWithColors = product?.product_variants?.filter(v => v.colors?.hex_code) || [];
           if (variantsWithColors.length === 0) return null;
@@ -120,27 +128,32 @@ export function ProductCard({
       {/* Content Container */}
       <div className="p-3 flex flex-col flex-1 border-t border-gray-100">
         <Link href={`/product/${productId}`} className="flex-1">
-          {/* Brand & Title */}
+          {/* Title */}
           <h3 className="text-sm text-gray-700 line-clamp-2 leading-snug hover:text-blue-600 transition-colors">
             {displayTitle}
           </h3>
           
           {/* Rating */}
           <div className="flex items-center gap-1 mt-2 mb-2">
-            <span className="text-xs text-gray-500">({reviews})</span>
-            <span className="text-xs font-bold text-gray-700">{rating}</span>
+            <span className="text-xs text-gray-500">({fakeReviews})</span>
+            <span className="text-xs font-bold text-gray-700">{fakeRating}</span>
             <Star className="w-3 h-3 fill-green-600 text-green-600" />
           </div>
           
           {/* Price Section */}
-          <div className="flex flex-col mt-auto">
+          <div className="flex flex-col mt-auto gap-0.5">
+            {/* Crossed-out fake original price */}
+            {fakeOriginalPrice > 0 && !isMerchant && (
+              <span className="text-[11px] text-gray-400 line-through font-semibold">
+                {fakeOriginalPrice} {locale === 'ar' ? 'ج.م' : 'EGP'}
+              </span>
+            )}
             <div className="flex items-end gap-1 flex-wrap">
               <span className="text-[10px] text-gray-500 pb-0.5">{locale === 'ar' ? 'جنيه' : 'EGP'}</span>
-              <span className="text-lg font-black text-gray-900 leading-none">{displayPrice.toFixed(2)}</span>
+              <span className="text-lg font-black text-red-600 leading-none">{displayPrice}</span>
             </div>
           </div>
         </Link>
-        
 
         {/* Merchant Actions Overlay */}
         {isMerchant && (
@@ -169,3 +182,4 @@ export function ProductCard({
     </div>
   );
 }
+

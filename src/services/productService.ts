@@ -1,6 +1,18 @@
 import { createClient } from '@/src/lib/supabase/client';
 import { Product } from '@/src/types';
 
+// Generates consistent fake social proof data per product (deterministic, not random)
+export function getFakeProductData(productId: string) {
+  let hash = 0;
+  for (let i = 0; i < productId.length; i++) {
+    hash = (hash * 31 + productId.charCodeAt(i)) & 0x7fffffff;
+  }
+  const rating = parseFloat((4.1 + (hash % 8) * 0.1).toFixed(1));
+  const reviews = 47 + (hash % 290);
+  const discountPct = 15 + (hash % 26); // 15% to 40%
+  return { rating, reviews, discountPct };
+}
+
 export const ProductService = {
   async getApprovedProducts(search?: string): Promise<Product[]> {
     const supabase = createClient() as any;
@@ -27,10 +39,20 @@ export const ProductService = {
     // Final Price = ceil((Original Price * 1.25) + 50)
     if (data) {
       data.forEach((product: any) => {
+        // Add fake social proof data
+        const fakeData = getFakeProductData(product.id);
+        product.fake_rating = fakeData.rating;
+        product.fake_reviews = fakeData.reviews;
+        product.fake_discount_pct = fakeData.discountPct;
+
         if (product.product_variants) {
           product.product_variants.forEach((variant: any) => {
             variant.original_price = variant.price;
-            variant.price = Math.ceil(variant.price * 1.25 + 50);
+            // Final storefront price
+            const finalPrice = Math.ceil(variant.price * 1.25 + 50);
+            variant.price = finalPrice;
+            // Fake "before discount" price (shown crossed-out), higher than final price
+            variant.fake_original_price = Math.ceil(finalPrice * (1 + fakeData.discountPct / 100));
           });
         }
       });
