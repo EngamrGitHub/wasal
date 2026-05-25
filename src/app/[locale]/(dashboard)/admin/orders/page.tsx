@@ -130,66 +130,27 @@ function AdminOrdersContent() {
       setError(null);
       setSuccess(null);
 
-      const supabase = createClient();
-      if (!supabase) throw new Error('Supabase client not initialized');
-
-      const originalItems = selectedOrderItems.order_items || [];
-
-      // 1. Identify deleted items
-      const deletedItems = originalItems.filter(
-        orig => !tempItems.some(temp => temp.id === orig.id)
-      );
-
-      for (const item of deletedItems) {
-        const { error: delErr } = await supabase
-          .from('order_items')
-          .delete()
-          .eq('id', item.id);
-        if (delErr) throw delErr;
-      }
-
-      // 2. Update changed items
-      for (const item of tempItems) {
-        const original = originalItems.find(o => o.id === item.id);
-        if (original && original.quantity !== item.quantity) {
-          // Recalculate platform commission based on new quantity
-          const singleCommission = (original.commission_amount || 0) / original.quantity;
-          const newCommission = singleCommission * item.quantity;
-
-          const { error: updErr } = await supabase
-            .from('order_items')
-            .update({ 
-              quantity: item.quantity,
-              commission_amount: newCommission
-            })
-            .eq('id', item.id);
-          if (updErr) throw updErr;
-        }
-      }
-
-      // 3. Recalculate totals
-      const newSubtotal = tempItems.reduce((acc, item) => {
-        const price = item.price_at_time || item.unit_price || 0;
-        return acc + (price * item.quantity);
-      }, 0);
-      
-      const shippingPrice = Number(selectedOrderItems.fixed_shipping_price || 0);
-      const newFinalPrice = newSubtotal + shippingPrice;
-
-      // 4. Update order in Supabase
-      const { error: orderErr } = await supabase
-        .from('orders')
-        .update({
-          total_amount: newSubtotal,
-          final_price: newFinalPrice
+      const response = await fetch('/api/admin/orders/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          orderId: selectedOrderItems.id,
+          tempItems: tempItems,
+          shippingPrice: Number(selectedOrderItems.fixed_shipping_price || 0)
         })
-        .eq('id', selectedOrderItems.id);
+      });
 
-      if (orderErr) throw orderErr;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update order items');
+      }
 
       setSuccess(locale === 'ar' ? 'تم تحديث المنتجات والكميات بنجاح! 🛍️✅' : 'Products & quantities updated successfully!');
       
-      // 5. Fetch fresh orders to update state globally
+      // Fetch fresh orders to update state globally
       await fetchOrders();
       
       setTimeout(() => setSuccess(null), 3000);
