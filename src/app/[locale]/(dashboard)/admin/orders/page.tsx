@@ -7,7 +7,7 @@ import { useRouter, usePathname } from '@/src/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { 
   ShoppingBag, Calendar, CheckCircle2, AlertCircle, Loader2, RefreshCw,
-  Coins, User, Phone, Mail, Store, Search, Edit, X
+  Coins, User, Phone, Mail, Store, Search, Edit, X, Trash2, Plus, Minus
 } from 'lucide-react';
 import { createClient } from '@/src/lib/supabase/client';
 import { Loader } from '@/src/components/ui/Loader';
@@ -114,7 +114,94 @@ function AdminOrdersContent() {
       setUpdatingId(null);
     }
   };
+  const [selectedOrderItems, setSelectedOrderItems] = useState<AdminOrderView | null>(null);
+  const [isItemsModalOpen, setIsItemsModalOpen] = useState(false);
+  const [tempItems, setTempItems] = useState<any[]>([]);
 
+  const handleItemsUpdate = async () => {
+    if (!selectedOrderItems) return;
+    if (tempItems.length === 0) {
+      setError(locale === 'ar' ? 'لا يمكن إخلاء الطلب تماماً من المنتجات، يرجى تغيير حالة الطلب إلى ملغي بدلاً من ذلك.' : 'An order must have at least one product. Please cancel the order instead.');
+      return;
+    }
+
+    try {
+      setUpdatingId(selectedOrderItems.id);
+      setError(null);
+      setSuccess(null);
+
+      const supabase = createClient();
+      if (!supabase) throw new Error('Supabase client not initialized');
+
+      const originalItems = selectedOrderItems.order_items || [];
+
+      // 1. Identify deleted items
+      const deletedItems = originalItems.filter(
+        orig => !tempItems.some(temp => temp.id === orig.id)
+      );
+
+      for (const item of deletedItems) {
+        const { error: delErr } = await supabase
+          .from('order_items')
+          .delete()
+          .eq('id', item.id);
+        if (delErr) throw delErr;
+      }
+
+      // 2. Update changed items
+      for (const item of tempItems) {
+        const original = originalItems.find(o => o.id === item.id);
+        if (original && original.quantity !== item.quantity) {
+          // Recalculate platform commission based on new quantity
+          const singleCommission = (original.commission_amount || 0) / original.quantity;
+          const newCommission = singleCommission * item.quantity;
+
+          const { error: updErr } = await supabase
+            .from('order_items')
+            .update({ 
+              quantity: item.quantity,
+              commission_amount: newCommission
+            })
+            .eq('id', item.id);
+          if (updErr) throw updErr;
+        }
+      }
+
+      // 3. Recalculate totals
+      const newSubtotal = tempItems.reduce((acc, item) => {
+        const price = item.price_at_time || item.unit_price || 0;
+        return acc + (price * item.quantity);
+      }, 0);
+      
+      const shippingPrice = Number(selectedOrderItems.fixed_shipping_price || 0);
+      const newFinalPrice = newSubtotal + shippingPrice;
+
+      // 4. Update order in Supabase
+      const { error: orderErr } = await supabase
+        .from('orders')
+        .update({
+          total_amount: newSubtotal,
+          final_price: newFinalPrice
+        })
+        .eq('id', selectedOrderItems.id);
+
+      if (orderErr) throw orderErr;
+
+      setSuccess(locale === 'ar' ? 'تم تحديث المنتجات والكميات بنجاح! 🛍️✅' : 'Products & quantities updated successfully!');
+      
+      // 5. Fetch fresh orders to update state globally
+      await fetchOrders();
+      
+      setTimeout(() => setSuccess(null), 3000);
+      setIsItemsModalOpen(false);
+      setSelectedOrderItems(null);
+    } catch (err: any) {
+      console.error('Error updating order items:', err);
+      setError(err.message || 'Failed to update order items');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -299,6 +386,20 @@ function AdminOrdersContent() {
         const items = item.order_items || [];
         return (
           <div className="flex flex-col gap-3 text-start min-w-[340px]">
+            {/* Edit Items Button */}
+            <button
+              onClick={() => {
+                setSelectedOrderItems(item);
+                // Deep clone of order items
+                setTempItems(JSON.parse(JSON.stringify(items)));
+                setIsItemsModalOpen(true);
+              }}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-xl text-xs font-black transition-all border border-primary/20 shadow-sm cursor-pointer"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              {locale === 'ar' ? 'تعديل المنتجات والكميات ✏️🛍️' : 'Edit Products & Quantities ✏️🛍️'}
+            </button>
+
             {items.map((sub, i) => {
               const pTitle = locale === 'ar' 
                 ? sub.products?.name_ar 
@@ -760,6 +861,148 @@ function AdminOrdersContent() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   locale === 'ar' ? 'حفظ التعديلات ✅' : 'Save Changes ✅'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Products & Quantities Modal */}
+      {isItemsModalOpen && selectedOrderItems && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-2 text-primary font-black">
+                <ShoppingBag className="w-5 h-5" />
+                <h3 className="text-lg">
+                  {locale === 'ar' ? 'تعديل منتجات وكميات الطلب' : 'Edit Order Products & Quantities'}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsItemsModalOpen(false);
+                  setSelectedOrderItems(null);
+                }}
+                className="p-1.5 hover:bg-gray-150 rounded-xl transition-all text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content List */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              {tempItems.map((item, idx) => {
+                const title = locale === 'ar' ? item.products?.name_ar : item.products?.name_en;
+                const price = item.price_at_time || item.unit_price || 0;
+                const sku = item.variant?.sku || '—';
+                const color = item.variant?.colors?.name;
+                const size = item.variant?.sizes?.name;
+                
+                const img = item.variant?.image_url
+                  || item.products?.product_images?.find((i: any) => i.is_main)?.image_url
+                  || item.products?.product_images?.[0]?.image_url
+                  || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100';
+
+                return (
+                  <div key={item.id || idx} className="flex items-center justify-between gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-150/70">
+                    {/* Info */}
+                    <div className="flex items-center gap-3 text-start flex-1 min-w-0">
+                      <img src={img} alt={title} className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0" />
+                      <div className="min-w-0 flex flex-col space-y-0.5">
+                        <span className="font-extrabold text-xs text-gray-900 truncate leading-snug">{title}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-gray-400 font-semibold">
+                          <span>SKU: {sku}</span>
+                          {(color || size) && (
+                            <span className="text-gray-500 bg-white px-1.5 py-0.5 rounded-md border border-gray-250/50">
+                              {color ? `${color}` : ''} {size ? `| ${size}` : ''}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs font-black text-primary font-mono mt-0.5">{price} EGP</span>
+                      </div>
+                    </div>
+
+                    {/* Counter & Action */}
+                    <div className="flex items-center gap-3 shrink-0">
+                      {/* Quantity Selector */}
+                      <div className="flex items-center bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <button
+                          onClick={() => {
+                            if (item.quantity > 1) {
+                              setTempItems(prev => prev.map(p => p.id === item.id ? { ...p, quantity: p.quantity - 1 } : p));
+                            }
+                          }}
+                          className="p-2 hover:bg-gray-50 text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="px-3 text-xs font-black text-gray-800 font-mono">{item.quantity}</span>
+                        <button
+                          onClick={() => {
+                            setTempItems(prev => prev.map(p => p.id === item.id ? { ...p, quantity: p.quantity + 1 } : p));
+                          }}
+                          className="p-2 hover:bg-gray-50 text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Remove button */}
+                      <button
+                        onClick={() => {
+                          setTempItems(prev => prev.filter(p => p.id !== item.id));
+                        }}
+                        className="p-2 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 rounded-xl border border-red-100 transition-all cursor-pointer"
+                        title={locale === 'ar' ? 'حذف المنتج من الطلب' : 'Remove item'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Calculations Summary */}
+            <div className="p-5 bg-gray-50 border-t border-b border-gray-150/70 text-xs font-semibold text-gray-700 space-y-2">
+              <div className="flex justify-between">
+                <span>{locale === 'ar' ? '💵 المنتجات:' : '💵 Products subtotal:'}</span>
+                <span className="font-bold text-gray-900 font-mono">
+                  {tempItems.reduce((acc, item) => acc + ((item.price_at_time || item.unit_price || 0) * item.quantity), 0)} EGP
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>{locale === 'ar' ? '🚚 مصاريف الشحن الثابتة:' : '🚚 Fixed Shipping:'}</span>
+                <span className="font-bold text-gray-900 font-mono">{Number(selectedOrderItems.fixed_shipping_price || 0)} EGP</span>
+              </div>
+              <div className="flex justify-between text-sm font-black border-t border-dashed border-gray-250 pt-2 text-primary">
+                <span>{locale === 'ar' ? '💰 الإجمالي الكلي للتحصيل:' : '💰 Grand Total:'}</span>
+                <span className="font-black font-mono">
+                  {tempItems.reduce((acc, item) => acc + ((item.price_at_time || item.unit_price || 0) * item.quantity), 0) + Number(selectedOrderItems.fixed_shipping_price || 0)} EGP
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 bg-gray-50/50 flex items-center justify-end gap-3 border-t border-gray-100">
+              <button
+                onClick={() => {
+                  setIsItemsModalOpen(false);
+                  setSelectedOrderItems(null);
+                }}
+                className="px-4 py-2.5 text-xs font-extrabold text-gray-500 hover:text-gray-700 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer hover:bg-gray-50 shadow-sm"
+              >
+                {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleItemsUpdate}
+                className="px-5 py-2.5 text-xs font-black text-white bg-primary hover:bg-primary/90 rounded-xl transition-all shadow-md shadow-primary/10 flex items-center gap-1.5 cursor-pointer"
+              >
+                {updatingId === selectedOrderItems.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  locale === 'ar' ? 'حفظ المنتجات والتعديلات ✅' : 'Save Changes ✅'
                 )}
               </button>
             </div>
