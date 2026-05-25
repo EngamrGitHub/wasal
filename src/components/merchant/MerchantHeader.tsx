@@ -6,7 +6,12 @@ import { useState, useEffect } from 'react'
 import { NotificationDropdown } from '../layout/NotificationDropdown'
 import { createClient } from '@/src/lib/supabase/client'
 
-export function MerchantHeader() {
+interface MerchantHeaderProps {
+  isCollapsed?: boolean;
+  toggleSidebar?: () => void;
+}
+
+export function MerchantHeader({ isCollapsed, toggleSidebar }: MerchantHeaderProps = {}) {
   const t = useTranslations('Merchant.Header');
   const locale = useLocale();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
