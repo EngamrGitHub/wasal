@@ -272,7 +272,7 @@ function AdminOrdersContent() {
                 });
                 setIsEditModalOpen(true);
               }}
-              className="absolute top-2.5 end-2.5 p-1.5 bg-white/90 hover:bg-white text-blue-600 hover:text-blue-800 rounded-lg shadow-sm border border-blue-100/50 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+              className="absolute top-2.5 end-2.5 p-1.5 bg-white hover:bg-blue-100 text-blue-600 hover:text-blue-800 rounded-xl shadow-sm border border-blue-200 transition-all duration-200 cursor-pointer"
               title={locale === 'ar' ? 'تعديل بيانات العميل والشحن ✏️' : 'Edit Customer & Shipping ✏️'}
             >
               <Edit className="w-3.5 h-3.5" />
