@@ -15,9 +15,16 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   keyExtractor: (item: T) => string | number;
   itemsPerPage?: number;
+  hidePagination?: boolean;
 }
 
-export function DataTable<T>({ data, columns, keyExtractor, itemsPerPage = 10 }: DataTableProps<T>) {
+export function DataTable<T>({
+  data,
+  columns,
+  keyExtractor,
+  itemsPerPage = 10,
+  hidePagination = false
+}: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const locale = useLocale();
 
@@ -70,17 +77,16 @@ export function DataTable<T>({ data, columns, keyExtractor, itemsPerPage = 10 }:
 
       <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-white flex-wrap gap-4">
         <div className="text-sm text-gray-500">
-           {locale === 'ar' ? 'عرض' : 'Showing'} {startIndex + 1} {locale === 'ar' ? 'إلى' : 'to'} {Math.min(startIndex + itemsPerPage, data.length)} {locale === 'ar' ? 'من' : 'of'} {data.length} {locale === 'ar' ? 'عنصر' : 'entries'}
+          {locale === 'ar' ? 'عرض' : 'Showing'} {startIndex + 1} {locale === 'ar' ? 'إلى' : 'to'} {Math.min(startIndex + itemsPerPage, data.length)} {locale === 'ar' ? 'من' : 'of'} {data.length} {locale === 'ar' ? 'عنصر' : 'entries'}
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 1}
-            className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${
-              currentPage === 1
+            className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${currentPage === 1
                 ? 'border-gray-100 text-gray-300 cursor-not-allowed'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary'
-            }`}
+              }`}
             title={locale === 'ar' ? 'الصفحة السابقة' : 'Previous Page'}
           >
             {locale === 'ar' ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -91,11 +97,10 @@ export function DataTable<T>({ data, columns, keyExtractor, itemsPerPage = 10 }:
           <button
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
-            className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${
-              currentPage === totalPages
+            className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${currentPage === totalPages
                 ? 'border-gray-100 text-gray-300 cursor-not-allowed'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary'
-            }`}
+              }`}
             title={locale === 'ar' ? 'الصفحة التالية' : 'Next Page'}
           >
             {locale === 'ar' ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}

@@ -6,6 +6,9 @@ import { useState } from 'react'
 import { NotificationDropdown } from '../layout/NotificationDropdown'
 import { createClient } from '@/src/lib/supabase/client'
 
+import { useRouter, usePathname } from '@/src/i18n/routing'
+import { useSearchParams } from 'next/navigation'
+
 interface AdminHeaderProps {
   isCollapsed?: boolean;
   toggleSidebar?: () => void;
@@ -14,7 +17,11 @@ interface AdminHeaderProps {
 export function AdminHeader({ isCollapsed, toggleSidebar }: AdminHeaderProps) {
   const t = useTranslations('Admin.Header');
   const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '');
 
   const handleLogout = async () => {
     try {
@@ -56,7 +63,19 @@ export function AdminHeader({ isCollapsed, toggleSidebar }: AdminHeaderProps) {
           <Search className={`absolute ${locale === 'ar' ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400`} />
           <input
             type="text"
+            value={searchValue}
             placeholder={t('search_placeholder') || 'Search...'}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSearchValue(val);
+              const params = new URLSearchParams(searchParams.toString());
+              if (val) {
+                params.set('search', val);
+              } else {
+                params.delete('search');
+              }
+              router.replace(`${pathname}?${params.toString()}` as any);
+            }}
             className={`h-10 w-64 bg-gray-50 border-transparent focus:bg-white focus:border-primary border-2 rounded-full text-sm outline-none transition-all ${locale === 'ar' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
           />
         </div>

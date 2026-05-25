@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Column, DataTable } from '@/src/components/admin/DataTable';
 import { useTranslations, useLocale } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { 
   ShoppingBag, Calendar, CheckCircle2, AlertCircle, Loader2, RefreshCw,
   Coins, User, Phone, Mail, Store, ChevronLeft, ChevronRight
@@ -72,6 +73,7 @@ export default function AdminOrdersPage() {
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [expandedMerchants, setExpandedMerchants] = useState<Record<string, boolean>>({});
 
   const fetchOrders = async () => {
     try {
@@ -128,6 +130,14 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search')?.toLowerCase() || '';
+
+  // Reset page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   // Calculate total platform commissions from all orders
   const totalPlatformCommissions = orders.reduce((acc, order) => {
     const items = order.order_items || [];
@@ -135,11 +145,50 @@ export default function AdminOrdersPage() {
     return acc + orderComm;
   }, 0);
 
+  // Apply search query filtering
+  const filteredOrders = orders.filter(order => {
+    if (!searchQuery) return true;
+    
+    // 1. Check Order ID
+    if (order.id.toLowerCase().includes(searchQuery)) return true;
+    
+    // 2. Check Customer Shipping Info
+    let cust = { name: '', phone: '', address: '', governorate: '' };
+    if (order.shipping_address) {
+      try {
+        cust = typeof order.shipping_address === 'object'
+          ? order.shipping_address
+          : JSON.parse(order.shipping_address);
+      } catch {}
+    }
+    if (cust.name?.toLowerCase().includes(searchQuery)) return true;
+    if (cust.phone?.toLowerCase().includes(searchQuery)) return true;
+    if (cust.address?.toLowerCase().includes(searchQuery)) return true;
+    if (cust.governorate?.toLowerCase().includes(searchQuery)) return true;
+
+    // 3. Check Order Items (Product name, SKU, Merchant store)
+    return (order.order_items || []).some(sub => {
+      const pTitleAr = sub.products?.name_ar?.toLowerCase() || '';
+      const pTitleEn = sub.products?.name_en?.toLowerCase() || '';
+      const sku = sub.variant?.sku?.toLowerCase() || '';
+      const storeAr = sub.merchant_details?.store_name_ar?.toLowerCase() || '';
+      const storeEn = sub.merchant_details?.store_name_en?.toLowerCase() || '';
+      const merchantName = sub.merchant_details?.merchant_name?.toLowerCase() || '';
+
+      return pTitleAr.includes(searchQuery) ||
+             pTitleEn.includes(searchQuery) ||
+             sku.includes(searchQuery) ||
+             storeAr.includes(searchQuery) ||
+             storeEn.includes(searchQuery) ||
+             merchantName.includes(searchQuery);
+    });
+  });
+
   // Paginated Orders Slicing
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = orders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
   const columns: Column<AdminOrderView>[] = [
     { 
@@ -242,35 +291,53 @@ export default function AdminOrdersPage() {
                     </div>
                   )}
 
-                  {/* Merchant details */}
-                  <div className="bg-white p-2 rounded-xl border border-gray-100/80 flex flex-col space-y-1 text-[10px]">
-                    <div className="font-extrabold text-primary flex items-center gap-1">
-                      <Store className="w-3.5 h-3.5 shrink-0" />
-                      <span>{storeName}</span>
-                    </div>
-                    <div className="text-gray-500 flex items-center gap-1 font-semibold">
-                      <User className="w-3 h-3 text-gray-400" />
-                      <span>{m.merchant_name}</span>
-                    </div>
-                    <div className="text-gray-500 flex items-center gap-1 font-mono">
-                      <Phone className="w-3 h-3 text-gray-400" />
-                      <a href={`tel:${m.merchant_phone}`} className="hover:underline">{m.merchant_phone}</a>
-                    </div>
-                    <div className="text-gray-500 flex items-center gap-1 font-mono">
-                      <Mail className="w-3 h-3 text-gray-400" />
-                      <span>{m.merchant_email}</span>
-                    </div>
-                    {m.address ? (
-                      <div className="text-gray-500 flex items-start gap-1 font-semibold mt-1 pt-1 border-t border-gray-100/80">
-                        <span className="shrink-0 text-primary">📍</span>
-                        <span className="leading-tight">
-                          {locale === 'ar' ? m.address.governorate_name_ar : m.address.governorate_name_en} - {m.address.city} - {m.address.street} - {m.address.building} {m.address.floor ? `, ${m.address.floor}` : ''} {m.address.notes ? `(${m.address.notes})` : ''}
-                        </span>
+                  {/* Collapsible Merchant details */}
+                  <div className="bg-white p-2.5 rounded-xl border border-gray-100/80 flex flex-col space-y-1.5 text-[10px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-extrabold text-primary flex items-center gap-1">
+                        <Store className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate max-w-[120px]">{storeName}</span>
                       </div>
-                    ) : (
-                      <div className="text-amber-600 flex items-start gap-1 font-semibold mt-1 pt-1 border-t border-gray-100/80">
-                        <span className="shrink-0">📍</span>
-                        <span>{locale === 'ar' ? 'لا يوجد عنوان مسجل للتاجر' : 'No registered address for merchant'}</span>
+                      <button
+                        onClick={() => setExpandedMerchants(prev => ({
+                          ...prev,
+                          [`${item.id}_${i}`]: !prev[`${item.id}_${i}`]
+                        }))}
+                        className="text-primary hover:text-white hover:bg-primary transition-all font-black text-[9px] bg-primary/5 px-2 py-0.5 rounded cursor-pointer shrink-0"
+                      >
+                        {expandedMerchants[`${item.id}_${i}`]
+                          ? (locale === 'ar' ? 'إخفاء التفاصيل ❌' : 'Hide Details ❌')
+                          : (locale === 'ar' ? 'بيانات التاجر 🏪' : 'Merchant Info 🏪')}
+                      </button>
+                    </div>
+
+                    {expandedMerchants[`${item.id}_${i}`] && (
+                      <div className="space-y-1.5 mt-1.5 pt-1.5 border-t border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="text-gray-500 flex items-center gap-1.5 font-semibold">
+                          <User className="w-3 h-3 text-gray-400 shrink-0" />
+                          <span>{m.merchant_name}</span>
+                        </div>
+                        <div className="text-gray-500 flex items-center gap-1.5 font-mono">
+                          <Phone className="w-3 h-3 text-gray-400 shrink-0" />
+                          <a href={`tel:${m.merchant_phone}`} className="hover:underline text-primary font-bold">{m.merchant_phone}</a>
+                        </div>
+                        <div className="text-gray-500 flex items-center gap-1.5 font-mono">
+                          <Mail className="w-3 h-3 text-gray-400 shrink-0" />
+                          <span>{m.merchant_email}</span>
+                        </div>
+                        {m.address ? (
+                          <div className="text-gray-500 flex items-start gap-1.5 font-semibold mt-1.5 pt-1.5 border-t border-gray-100">
+                            <span className="shrink-0 text-primary">📍</span>
+                            <span className="leading-normal">
+                              {locale === 'ar' ? m.address.governorate_name_ar : m.address.governorate_name_en} - {m.address.city} - {m.address.street} - {m.address.building} {m.address.floor ? `, ${m.address.floor}` : ''} {m.address.notes ? `(${m.address.notes})` : ''}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="text-amber-600 flex items-start gap-1.5 font-semibold mt-1.5 pt-1.5 border-t border-gray-100">
+                            <span className="shrink-0">📍</span>
+                            <span>{locale === 'ar' ? 'لا يوجد عنوان مسجل للتاجر' : 'No registered address for merchant'}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -506,6 +573,12 @@ export default function AdminOrdersPage() {
           <h3 className="text-lg font-bold text-gray-900">لا توجد طلبات بعد</h3>
           <p className="text-gray-400 mt-1">لم يتم إجراء أي عمليات شراء تابعة للتجار على المنصة حتى الآن.</p>
         </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="bg-gray-50 rounded-3xl p-16 text-center border border-gray-100">
+          <ShoppingBag className="w-12 h-12 text-gray-350 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-gray-900">لا توجد نتائج بحث مطابقة</h3>
+          <p className="text-gray-400 mt-1">جرب البحث بكلمات أخرى أو أرقام هواتف مختلفة.</p>
+        </div>
       ) : (
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between">
           <div className="overflow-x-auto">
@@ -513,6 +586,7 @@ export default function AdminOrdersPage() {
               data={currentOrders} 
               columns={columns} 
               keyExtractor={(item) => item.id} 
+              hidePagination={true}
             />
           </div>
 
@@ -534,7 +608,7 @@ export default function AdminOrdersPage() {
                   <option value={20}>20</option>
                   <option value={50}>50</option>
                 </select>
-                <span>طلبات من إجمالي {orders.length} طلب</span>
+                <span>طلبات من إجمالي {filteredOrders.length} طلب</span>
               </div>
 
               <div className="flex items-center gap-1.5">
