@@ -10,8 +10,59 @@ interface Category {
   id: string;
   name_ar: string;
   name_en: string;
-  image_url: string;
+  image_url: string | null;
 }
+
+const dummyCategories: Category[] = [
+  {
+    id: 'fashion',
+    name_ar: 'أزياء',
+    name_en: 'Fashion',
+    image_url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=200&q=80'
+  },
+  {
+    id: 'electronics',
+    name_ar: 'إلكترونيات',
+    name_en: 'Electronics',
+    image_url: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&q=80'
+  },
+  {
+    id: 'home',
+    name_ar: 'المنزل',
+    name_en: 'Home',
+    image_url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=200&q=80'
+  },
+  {
+    id: 'beauty',
+    name_ar: 'جمال وعناية',
+    name_en: 'Beauty & Care',
+    image_url: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&q=80'
+  },
+  {
+    id: 'toys',
+    name_ar: 'ألعاب',
+    name_en: 'Toys & Games',
+    image_url: 'https://images.unsplash.com/photo-1539627831859-a911cf04d3cd?w=200&q=80'
+  },
+  {
+    id: 'sports',
+    name_ar: 'رياضة',
+    name_en: 'Sports',
+    image_url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200&q=80'
+  },
+  {
+    id: 'supermarket',
+    name_ar: 'سوبرماركت',
+    name_en: 'Supermarket',
+    image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80'
+  },
+  {
+    id: 'books',
+    name_ar: 'كتب',
+    name_en: 'Books',
+    image_url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&q=80'
+  }
+];
 
 export function CategoryCarousel() {
   const t = useTranslations('Categories');
@@ -26,7 +77,10 @@ export function CategoryCarousel() {
     async function fetchCategories() {
       try {
         const supabase = createClient();
-        if (!supabase) return;
+        if (!supabase) {
+          setCategories(dummyCategories);
+          return;
+        }
 
         const { data, error } = await supabase
           .from('categories')
@@ -34,9 +88,14 @@ export function CategoryCarousel() {
           .order('created_at', { ascending: true });
 
         if (error) throw error;
-        if (data) setCategories(data as Category[]);
+        if (data && data.length > 0) {
+          setCategories(data as Category[]);
+        } else {
+          setCategories(dummyCategories);
+        }
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to fetch categories from Supabase, using dummy categories:', err);
+        setCategories(dummyCategories);
       } finally {
         setLoading(false);
       }
