@@ -82,10 +82,17 @@ export function CategoryCarousel() {
           return;
         }
 
-        const { data, error } = await supabase
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Query timeout')), 1500)
+        );
+
+        const fetchPromise = supabase
           .from('categories')
           .select('*')
           .order('created_at', { ascending: true });
+
+        const result = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        const { data, error } = result;
 
         if (error) throw error;
         if (data && data.length > 0) {

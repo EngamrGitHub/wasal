@@ -52,7 +52,14 @@ function ProductGridContent({ search }: { search?: string }) {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const data = await ProductService.getApprovedProducts(searchQuery);
+        
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Product fetch timeout')), 1500)
+        );
+
+        const fetchPromise = ProductService.getApprovedProducts(searchQuery);
+
+        const data = await Promise.race([fetchPromise, timeoutPromise]);
         setProducts(data);
       } catch (error) {
         console.error("Failed to fetch products from Supabase, using dummy data", error);
