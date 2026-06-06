@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/src/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // 1. Initialize the standard Supabase server client which handles cookies and sessions correctly
@@ -13,6 +15,11 @@ export async function GET() {
     // 2. Verify authenticated user is an ADMIN
     const { data: { user } } = await supabaseAuth.auth.getUser();
     if (!user || user.user_metadata?.role !== 'ADMIN') {
+      console.warn('Unauthorized admin orders API access attempt:', {
+        hasUser: !!user,
+        email: user?.email,
+        role: user?.user_metadata?.role
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

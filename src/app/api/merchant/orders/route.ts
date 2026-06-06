@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/src/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // 1. Initialize the standard Supabase server client which handles cookies and sessions correctly
@@ -10,9 +12,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Supabase URL/Key not set' }, { status: 500 });
     }
 
-    // 2. Verify authenticated user is a MERCHANT
+    // 2. Verify authenticated user is a MERCHANT or ADMIN
     const { data: { user } } = await supabaseAuth.auth.getUser();
-    if (!user || user.user_metadata?.role !== 'MERCHANT') {
+    if (!user || (user.user_metadata?.role !== 'MERCHANT' && user.user_metadata?.role !== 'ADMIN')) {
+      console.warn('Unauthorized merchant orders API access attempt:', {
+        hasUser: !!user,
+        email: user?.email,
+        role: user?.user_metadata?.role
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

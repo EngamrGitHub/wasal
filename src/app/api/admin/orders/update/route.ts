@@ -13,6 +13,11 @@ export async function POST(req: Request) {
     // 2. Verify authenticated user is an ADMIN
     const { data: { user } } = await supabaseAuth.auth.getUser();
     if (!user || user.user_metadata?.role !== 'ADMIN') {
+      console.warn('Unauthorized admin orders update API access attempt:', {
+        hasUser: !!user,
+        email: user?.email,
+        role: user?.user_metadata?.role
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
