@@ -8,7 +8,7 @@ const intlMiddleware = createMiddleware({
   localePrefix: 'always'
 });
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 1. Run the next-intl middleware first to get the response with localization routing
   let response = intlMiddleware(request);
 
@@ -41,6 +41,8 @@ export async function middleware(request: NextRequest) {
 
   return response;
 }
+
+export default proxy;
 
 export const config = {
   // Match all pathnames except for
