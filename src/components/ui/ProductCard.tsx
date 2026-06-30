@@ -150,8 +150,14 @@ export function ProductCard({
             )}
             <div className="flex items-end gap-1 flex-wrap">
               <span className="text-[10px] text-gray-500 pb-0.5">{locale === 'ar' ? 'جنيه' : 'EGP'}</span>
-              <span className="text-lg font-black text-red-600 leading-none">{displayPrice}</span>
+              <span className="text-lg font-black text-black leading-none">{displayPrice}</span>
             </div>
+          </div>
+          
+          {/* Wafir Express Badge */}
+          <div className="flex items-center gap-1 mt-2">
+             <span className="text-[10px] font-black italic text-black bg-primary px-1.5 py-0.5 rounded-sm">wafir</span>
+             <span className="text-[10px] font-bold text-blue-600">express</span>
           </div>
         </Link>
 

@@ -17,7 +17,7 @@ export function Hero() {
 
   return (
     <section className="container mx-auto px-4 py-8">
-      <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl">
+      <div className="relative w-full rounded-xl overflow-hidden shadow-sm">
         <Swiper
           key={locale}
           dir={locale === 'ar' ? 'rtl' : 'ltr'}

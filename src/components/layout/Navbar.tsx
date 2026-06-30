@@ -22,9 +22,14 @@ export function Navbar() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          setCartCount(Number(parsed.quantity || 1));
+          if (Array.isArray(parsed)) {
+            const totalQty = parsed.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+            setCartCount(totalQty);
+          } else {
+            setCartCount(Number(parsed.quantity || 1));
+          }
         } catch {
-          setCartCount(1);
+          setCartCount(0);
         }
       } else {
         setCartCount(0);
@@ -59,7 +64,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
+    <nav className="sticky top-0 z-50 w-full bg-primary shadow-sm">
       {/* Main Navbar */}
       <div className="container mx-auto px-4 py-4 lg:py-0 lg:h-24 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-8">
         
@@ -75,16 +80,16 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href={`/${locale}`} className="shrink-0 flex-1 lg:flex-none flex items-center justify-center lg:justify-start gap-2.5">
-            <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-black/10 bg-white flex items-center justify-center p-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src="/logo.jpg" 
-                alt="Wesal Logo" 
-                className="absolute inset-x-0 top-0 w-full h-[165%] object-cover object-top"
+                alt="Wafir Logo" 
+                className="w-full h-full object-contain"
               />
             </div>
-            <span className="text-2xl lg:text-3xl font-black tracking-tight text-primary">
-              {locale === 'ar' ? 'وصال' : 'Wesal'}
+            <span className="text-2xl lg:text-3xl font-black tracking-tight text-black">
+              {locale === 'ar' ? 'وافر' : 'Wafir'}
             </span>
           </Link>
 
@@ -92,14 +97,14 @@ export function Navbar() {
           <div className="flex lg:hidden items-center gap-2">
             <button 
               onClick={toggleLanguage} 
-              className="p-2 text-sm font-bold text-gray-600 hover:text-primary"
+              className="p-2 text-sm font-bold text-black/80 hover:text-black"
             >
               {locale === 'ar' ? 'EN' : 'AR'}
             </button>
-            <Link href={`/${locale}/cart`} className="relative p-2 text-gray-600 hover:text-primary">
+            <Link href={`/${locale}/cart`} className="relative p-2 text-black/80 hover:text-black">
               <ShoppingCart className="w-6 h-6" />
               {cartCount > 0 && (
-                <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border border-white">
+                <span className="absolute top-0 right-0 w-4 h-4 bg-black text-white text-[10px] flex items-center justify-center rounded-full font-bold">
                   {cartCount}
                 </span>
               )}
@@ -115,9 +120,9 @@ export function Navbar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('search_placeholder') || 'Search...'}
-              className={`w-full h-12 bg-white border-2 border-primary/20 rounded-full ${locale === 'ar' ? 'pr-6 pl-24' : 'pl-6 pr-24'} text-sm focus:outline-none focus:border-primary transition-all`}
+              className={`w-full h-12 bg-white rounded-md ${locale === 'ar' ? 'pr-4 pl-24' : 'pl-4 pr-24'} text-sm focus:outline-none focus:ring-2 focus:ring-black/20 transition-all`}
             />
-            <button type="submit" className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-6 lg:px-8 bg-primary text-white rounded-full font-bold text-sm hover:opacity-90 transition-opacity`}>
+            <button type="submit" className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-6 lg:px-8 bg-black text-white rounded-md font-bold text-sm hover:bg-black/90 transition-colors`}>
               {t('search_button') || 'Search'}
             </button>
           </div>
@@ -129,17 +134,17 @@ export function Navbar() {
             <Link 
               key={index} 
               href={item.href}
-              className="flex flex-col items-center gap-1 group relative transition-colors hover:text-primary"
+              className="flex flex-col items-center gap-1 group relative transition-colors"
             >
-              <div className="relative p-2 rounded-xl group-hover:bg-primary/5 transition-colors">
-                <item.icon className="w-6 h-6 text-gray-500 group-hover:text-primary transition-colors" />
+              <div className="relative p-2 rounded-xl group-hover:bg-black/5 transition-colors">
+                <item.icon className="w-6 h-6 text-black/80 group-hover:text-black transition-colors" />
                   {!!item.badge && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold border-2 border-white shadow-sm">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-black text-white text-[10px] flex items-center justify-center rounded-full font-bold shadow-sm">
                       {item.badge}
                     </span>
                   )}
               </div>
-              <span className="text-[12px] font-bold text-gray-600 group-hover:text-primary whitespace-nowrap">
+              <span className="text-[12px] font-bold text-black/80 group-hover:text-black whitespace-nowrap">
                 {item.label}
               </span>
             </Link>
@@ -148,7 +153,7 @@ export function Navbar() {
           {/* Desktop Notifications Bell */}
           <div className="flex flex-col items-center gap-1">
             <NotificationDropdown />
-            <span className="text-[12px] font-bold text-gray-600 whitespace-nowrap">
+            <span className="text-[12px] font-bold text-black/80 whitespace-nowrap">
               {locale === 'ar' ? 'الإشعارات' : 'Alerts'}
             </span>
           </div>
@@ -158,12 +163,12 @@ export function Navbar() {
             onClick={toggleLanguage}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className="p-2 rounded-xl group-hover:bg-primary/5">
-              <span className="text-xl font-bold text-gray-500 group-hover:text-primary">
+            <div className="p-2 rounded-xl group-hover:bg-black/5">
+              <span className="text-xl font-bold text-black/80 group-hover:text-black">
                 {locale === 'ar' ? 'EN' : 'AR'}
               </span>
             </div>
-            <span className="text-[12px] font-bold text-gray-600 group-hover:text-primary">
+            <span className="text-[12px] font-bold text-black/80 group-hover:text-black">
               {t('language_label') || 'Language'}
             </span>
           </button>

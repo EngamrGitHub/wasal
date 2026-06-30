@@ -11,31 +11,31 @@ import { Product } from '@/src/types';
 // Placeholder data for fallback
 const dummyProducts: Partial<Product>[] = [
   {
-    id: '1',
+    id: '00000000-0000-0000-0000-000000000001',
     name_ar: 'سماعات رأس لاسلكية ممتازة',
     name_en: 'Premium Wireless Headphones',
-    product_variants: [{ id: 'var1', price: 299.99, stock_quantity: 10, weight_kg: 0.5, image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80', is_active: true, product_id: '1', sku: null, color_id: null, size_id: null }],
+    product_variants: [{ id: 'var1', price: 299.99, stock_quantity: 10, weight_kg: 0.5, image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80', is_active: true, product_id: '00000000-0000-0000-0000-000000000001', sku: null, color_id: null, size_id: null }],
     product_images: [],
   },
   {
-    id: '2',
+    id: '00000000-0000-0000-0000-000000000002',
     name_ar: 'ساعة ذكية متطورة',
     name_en: 'Advanced Smart Watch',
-    product_variants: [{ id: 'var2', price: 199.99, stock_quantity: 15, weight_kg: 0.2, image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80', is_active: true, product_id: '2', sku: null, color_id: null, size_id: null }],
+    product_variants: [{ id: 'var2', price: 199.99, stock_quantity: 15, weight_kg: 0.2, image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80', is_active: true, product_id: '00000000-0000-0000-0000-000000000002', sku: null, color_id: null, size_id: null }],
     product_images: [],
   },
   {
-    id: '3',
+    id: '00000000-0000-0000-0000-000000000003',
     name_ar: 'حقيبة ظهر للكمبيوتر المحمول',
     name_en: 'Minimalist Laptop Backpack',
-    product_variants: [{ id: 'var3', price: 89.99, stock_quantity: 20, weight_kg: 1.2, image_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80', is_active: true, product_id: '3', sku: null, color_id: null, size_id: null }],
+    product_variants: [{ id: 'var3', price: 89.99, stock_quantity: 20, weight_kg: 1.2, image_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80', is_active: true, product_id: '00000000-0000-0000-0000-000000000003', sku: null, color_id: null, size_id: null }],
     product_images: [],
   },
   {
-    id: '4',
+    id: '00000000-0000-0000-0000-000000000004',
     name_ar: 'نظارات شمسية كلاسيكية',
     name_en: 'Classic Sunglasses',
-    product_variants: [{ id: 'var4', price: 159.99, stock_quantity: 5, weight_kg: 0.1, image_url: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&q=80', is_active: true, product_id: '4', sku: null, color_id: null, size_id: null }],
+    product_variants: [{ id: 'var4', price: 159.99, stock_quantity: 5, weight_kg: 0.1, image_url: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500&q=80', is_active: true, product_id: '00000000-0000-0000-0000-000000000004', sku: null, color_id: null, size_id: null }],
     product_images: [],
   }
 ];
@@ -61,8 +61,8 @@ function ProductGridContent({ search }: { search?: string }) {
 
         const data = await Promise.race([fetchPromise, timeoutPromise]);
         setProducts(data);
-      } catch (error) {
-        console.error("Failed to fetch products from Supabase, using dummy data", error);
+      } catch (error: any) {
+        console.warn("Failed to fetch products from Supabase, using dummy data:", error.message);
       } finally {
         setLoading(false);
       }

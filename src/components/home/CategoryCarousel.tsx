@@ -100,8 +100,8 @@ export function CategoryCarousel() {
         } else {
           setCategories(dummyCategories);
         }
-      } catch (err) {
-        console.error('Failed to fetch categories from Supabase, using dummy categories:', err);
+      } catch (err: any) {
+        console.warn('Failed to fetch categories from Supabase, using dummy categories:', err.message);
         setCategories(dummyCategories);
       } finally {
         setLoading(false);
@@ -128,7 +128,7 @@ export function CategoryCarousel() {
 
   if (loading) {
     return (
-      <section className="bg-[#eef5f4] py-8 w-full overflow-hidden">
+      <section className="bg-white py-6 w-full overflow-hidden border-b border-gray-100">
         <div className="container mx-auto px-4 flex gap-4 overflow-x-hidden">
           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
             <div key={i} className="flex flex-col items-center gap-3 shrink-0 animate-pulse">
@@ -142,7 +142,7 @@ export function CategoryCarousel() {
   }
 
   return (
-    <section className="bg-[#eef5f4] py-8 w-full relative group">
+    <section className="bg-white py-6 w-full relative group border-b border-gray-100">
       <div className="container mx-auto px-4 relative">
         
         {/* Navigation Buttons */}
@@ -172,8 +172,8 @@ export function CategoryCarousel() {
               href={`/categories/${category.id}`}
               className="flex flex-col items-center gap-3 shrink-0 snap-start group/item w-[110px]"
             >
-              {/* Arch Dome Shape */}
-              <div className="relative w-[100px] h-[100px] bg-white rounded-t-[50px] rounded-b-xl border-2 border-white shadow-sm overflow-hidden group-hover/item:shadow-md transition-all group-hover/item:-translate-y-1">
+              {/* Circular Shape */}
+              <div className="relative w-[80px] h-[80px] bg-white rounded-full border border-gray-100 shadow-sm overflow-hidden group-hover/item:shadow-md group-hover/item:border-primary transition-all group-hover/item:-translate-y-1">
                 {category.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img 

@@ -5,14 +5,14 @@
   --background: #FFFFFF;
   --foreground: #1A1A1A;
   
-  /* Brand Colors - Matching the Orange Theme */
-  --primary: #F58220;
-  --primary-foreground: #FFFFFF;
+  /* Brand Colors - Matching the Noon Theme */
+  --primary: #FEEE00;
+  --primary-foreground: #000000;
   
   --secondary: #2D3E50;
   --secondary-foreground: #FFFFFF;
   
-  --accent: #F58220;
+  --accent: #FEEE00;
   
   /* UI Elements */
   --surface: #FFFFFF;
@@ -167,7 +167,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary, #F58220);
+  background: var(--primary, #FEEE00);
   border-radius: 9999px;
 }
 

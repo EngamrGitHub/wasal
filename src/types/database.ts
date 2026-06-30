@@ -177,6 +177,52 @@ export interface Database {
           display_order?: number
         }
       }
+      stores: {
+        Row: {
+          id: string
+          name: string
+          owner_id: string | null
+          has_own_shipping: boolean
+          commission_rate: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          owner_id?: string | null
+          has_own_shipping?: boolean
+          commission_rate?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          owner_id?: string | null
+          has_own_shipping?: boolean
+          commission_rate?: number
+          created_at?: string
+        }
+      }
+      store_shipping_rates: {
+        Row: {
+          id: string
+          store_id: string | null
+          governorate_id: string | null
+          price: number
+        }
+        Insert: {
+          id?: string
+          store_id?: string | null
+          governorate_id?: string | null
+          price: number
+        }
+        Update: {
+          id?: string
+          store_id?: string | null
+          governorate_id?: string | null
+          price?: number
+        }
+      }
       orders: {
         Row: {
           id: string

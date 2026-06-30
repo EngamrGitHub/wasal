@@ -9,7 +9,7 @@ const supabase = createClient(url, key);
 async function run() {
   const email = 'amr232948@gmail.com';
   const password = 'Amr$1492000';
-  
+
   console.log(`Checking if user ${email} already exists in auth...`);
 
   // 1. List users to see if they exist
@@ -25,7 +25,7 @@ async function run() {
 
   if (existingUser) {
     console.log(`User exists with ID: ${existingUser.id}. Updating metadata to role=ADMIN...`);
-    
+
     // Update existing user to have ADMIN role in metadata
     const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(
       existingUser.id,
@@ -46,7 +46,7 @@ async function run() {
     console.log('✅ User metadata successfully updated to ADMIN!');
   } else {
     console.log(`User does not exist. Creating new user with role=ADMIN...`);
-    
+
     // Create new admin user
     const { data: { user }, error: createError } = await supabase.auth.admin.createUser({
       email: email,

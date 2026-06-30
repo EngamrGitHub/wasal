@@ -90,20 +90,40 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product || !selectedVariant) return;
     
-    // Save to localStorage
-    const cartItem = {
-      productId: product.id,
-      variantId: selectedVariant.id,
-      quantity: quantity
-    };
-    localStorage.setItem('wesal_cart', JSON.stringify(cartItem));
+    // Load existing cart
+    let currentCart: any[] = [];
+    const saved = localStorage.getItem('wesal_cart');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          currentCart = parsed;
+        } else if (parsed && parsed.productId) {
+          currentCart = [parsed];
+        }
+      } catch (e) {}
+    }
+
+    // Check if variant already exists in cart
+    const existingIndex = currentCart.findIndex(item => item.variantId === selectedVariant.id);
+    if (existingIndex >= 0) {
+      currentCart[existingIndex].quantity += quantity;
+    } else {
+      currentCart.push({
+        productId: product.id,
+        variantId: selectedVariant.id,
+        quantity: quantity
+      });
+    }
+
+    localStorage.setItem('wesal_cart', JSON.stringify(currentCart));
     window.dispatchEvent(new Event('wesal_cart_updated'));
 
     // Show quick success state and redirect to checkout cart
     setCartSuccess(true);
     setTimeout(() => {
       setCartSuccess(false);
-      router.push(`/cart?productId=${product.id}&variantId=${selectedVariant.id}&quantity=${quantity}`);
+      router.push('/cart');
     }, 800);
   };
 
