@@ -166,11 +166,14 @@ export function CategoryCarousel() {
           className="flex items-start gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {categories.map((category) => (
+          {categories.map((category, index) => {
+            // Generate a staggered delay based on index (up to 500ms)
+            const delayClass = index === 0 ? '' : `delay-${Math.min((index % 5 + 1) * 100, 500)}`;
+            return (
             <Link
               key={category.id}
               href={`/categories/${category.id}`}
-              className="flex flex-col items-center gap-3 shrink-0 snap-start group/item w-[110px]"
+              className={`flex flex-col items-center gap-3 shrink-0 snap-start group/item w-[110px] animate-slide-up ${delayClass}`}
             >
               {/* Circular Shape */}
               <div className="relative w-[80px] h-[80px] bg-white rounded-full border border-gray-100 shadow-sm overflow-hidden group-hover/item:shadow-md group-hover/item:border-primary transition-all group-hover/item:-translate-y-1">

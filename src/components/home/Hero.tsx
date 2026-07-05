@@ -40,11 +40,11 @@ export function Hero() {
                 />
                 {/* Overlay with Text */}
                 <div className="absolute inset-0 bg-black/35 flex flex-col items-center justify-center text-center p-6 transition-opacity group-hover:bg-black/40">
-                  <div className="animate-fade-in space-y-3">
-                    <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight drop-shadow-lg">
+                  <div className="space-y-4">
+                    <h2 className="animate-slide-up text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight drop-shadow-lg">
                        {t(slide.title)}
                     </h2>
-                    <p className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-white/90 drop-shadow-md">
+                    <p className="animate-slide-up delay-100 text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white/90 drop-shadow-md">
                        {t(slide.subtitle)}
                     </p>
                   </div>

@@ -96,8 +96,16 @@ function ProductGridContent({ search }: { search?: string }) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.length > 0 
-            ? products.map((product) => <ProductCard key={product.id} product={product} />)
-            : dummyProducts.map((product) => <ProductCard key={product.id} product={product as Product} />)
+            ? products.map((product, index) => (
+                <div key={product.id} className={`animate-slide-up delay-${Math.min((index % 4 + 1) * 100, 400)}`}>
+                  <ProductCard product={product} />
+                </div>
+              ))
+            : dummyProducts.map((product, index) => (
+                <div key={product.id} className={`animate-slide-up delay-${Math.min((index % 4 + 1) * 100, 400)}`}>
+                  <ProductCard product={product as Product} />
+                </div>
+              ))
           }
         </div>
       )}
