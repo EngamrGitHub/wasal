@@ -194,7 +194,8 @@ export function CategoryCarousel() {
                 {isRtl ? category.name_ar : category.name_en}
               </span>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

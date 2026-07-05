@@ -18,8 +18,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Wesal | وصال",
+  title: "Wafir | وافر",
   description: "B2B & B2C E-commerce Marketplace",
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
   alternates: {
     languages: {
       en:'/en',

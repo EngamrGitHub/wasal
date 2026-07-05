@@ -83,7 +83,7 @@ export function Navbar() {
             <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-black/10 bg-white flex items-center justify-center p-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
-                src="/logo.jpg" 
+                src="/logo.png" 
                 alt="Wafir Logo" 
                 className="w-full h-full object-contain"
               />
