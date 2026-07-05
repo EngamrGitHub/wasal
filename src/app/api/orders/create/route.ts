@@ -67,7 +67,9 @@ export async function POST(req: NextRequest) {
         };
       }
 
-      const price = Number(variant.price || 0);
+      // Apply smart pricing markup: ceil((Original Price * 1.25) + 50)
+      const basePrice = Number(variant.price || 0);
+      const price = Math.ceil(basePrice * 1.25 + 50);
       const subtotal = price * item.quantity;
       
       storeGroups[storeId].items.push({

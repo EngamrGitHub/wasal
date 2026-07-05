@@ -132,12 +132,21 @@ function CartCheckoutContent() {
         const productIds = Array.from(new Set(cartItems.map(item => item.productId)));
         const { data: productsData } = await supabase
           .from('products')
-          .select('*, product_variants(*), stores(id, name)')
+          .select('*, product_variants(*, colors(name), sizes(name)), product_images(*), stores(id, name)')
           .in('id', productIds);
 
         if (productsData) {
           const pMap: Record<string, ProductDetails> = {};
-          productsData.forEach((p: any) => { pMap[p.id] = p; });
+          productsData.forEach((p: any) => { 
+            // Apply the same smart pricing logic as the storefront: ceil((Original Price * 1.25) + 50)
+            if (p.product_variants) {
+              p.product_variants.forEach((v: any) => {
+                v.original_price = v.price;
+                v.price = Math.ceil(v.price * 1.25 + 50);
+              });
+            }
+            pMap[p.id] = p; 
+          });
           setProductsMap(pMap);
         }
       } catch (err) {
