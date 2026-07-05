@@ -142,7 +142,7 @@ export const ProductService = {
     const supabase = createClient() as any;
     if (!supabase) throw new Error('Supabase URL/Key missing');
 
-    // Fetch the current user (merchant) to set the store_id/seller context if needed
+    // Fetch the current user (merchant) to set the store_id/seller context
     const { data: { user } } = await supabase.auth.getUser();
     const storeId = user?.user_metadata?.store_id || null;
     
@@ -156,7 +156,7 @@ export const ProductService = {
         description_en: payload.description_en,
         category_id: payload.category_id || null,
         store_id: storeId, // Dynamically set to merchant's store_id
-        approval_status: 'PENDING',
+        approval_status: 'PENDING', // ALWAYS PENDING for Admin to review
         is_active: true
       })
       .select()
