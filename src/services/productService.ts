@@ -146,6 +146,10 @@ export const ProductService = {
     const { data: { user } } = await supabase.auth.getUser();
     const storeId = user?.user_metadata?.store_id || null;
     
+    if (!storeId) {
+      throw new Error("No store assigned to this merchant. Please contact the administrator.");
+    }
+    
     // 1. Insert base product
     const { data: productData, error: productError } = await supabase
       .from('products')
@@ -168,16 +172,19 @@ export const ProductService = {
 
     // 2. Insert variants
     if (payload.variants && payload.variants.length > 0) {
-      const variantsToInsert = payload.variants.map((v: any) => ({
-        product_id: productId,
-        price: v.price,
-        stock_quantity: v.stock_quantity || 0,
-        weight_kg: v.weight_kg || 0,
-        sku: v.sku || null,
-        color_id: v.color_id || null,
-        size_id: v.size_id || null,
-        is_active: true
-      }));
+      const variantsToInsert = payload.variants.map((v: any) => {
+        const trimmedSku = v.sku?.trim();
+        return {
+          product_id: productId,
+          price: v.price,
+          stock_quantity: v.stock_quantity || 0,
+          weight_kg: v.weight_kg || 0,
+          sku: trimmedSku || null,
+          color_id: v.color_id || null,
+          size_id: v.size_id || null,
+          is_active: true
+        };
+      });
 
       const { data: variantData, error: variantError } = await supabase
         .from('product_variants')
