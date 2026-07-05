@@ -16,7 +16,7 @@ export default function PublicLayout({
           </main>
           <Footer />
           {/* Global WhatsApp Chat Widget for Public Pages */}
-          <WhatsAppWidget phoneNumber="201000000000" />
+          <WhatsAppWidget phoneNumber="201024380714" />
         </div>
     )
 }
