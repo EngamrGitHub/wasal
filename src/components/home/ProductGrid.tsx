@@ -71,17 +71,17 @@ function ProductGridContent({ search }: { search?: string }) {
   }, [searchQuery]);
 
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-8">
+    <section className="container mx-auto px-4 py-6 md:py-12">
+      <div className="flex items-center justify-between mb-4 md:mb-8">
         <div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-xl md:text-3xl font-black text-gray-900 tracking-tight">
             {t('featured_products')}
           </h2>
-          <p className="text-gray-500 mt-1">{t('featured_products_desc')}</p>
+          <p className="text-gray-500 mt-1 text-sm md:text-base hidden sm:block">{t('featured_products_desc')}</p>
         </div>
         <Link 
           href="/products" 
-          className="px-6 py-2 rounded-full border-2 border-gray-100 font-bold text-gray-600 hover:border-primary hover:text-primary transition-all duration-300"
+          className="px-3 py-1.5 md:px-6 md:py-2 rounded-full border-2 border-gray-100 font-bold text-gray-600 hover:border-primary hover:text-primary transition-all duration-300 text-sm md:text-base shrink-0"
         >
           {t('view_all')}
         </Link>
@@ -94,7 +94,7 @@ function ProductGridContent({ search }: { search?: string }) {
            ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
           {products.length > 0 
             ? products.map((product, index) => (
                 <div key={product.id} className={`animate-slide-up delay-${Math.min((index % 4 + 1) * 100, 400)}`}>

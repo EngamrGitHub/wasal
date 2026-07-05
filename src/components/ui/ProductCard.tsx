@@ -126,10 +126,10 @@ export function ProductCard({
       </div>
       
       {/* Content Container */}
-      <div className="p-3 flex flex-col flex-1 border-t border-gray-100">
+      <div className="p-2 md:p-3 flex flex-col flex-1 border-t border-gray-100">
         <Link href={`/product/${productId}`} className="flex-1">
           {/* Title */}
-          <h3 className="text-sm text-gray-700 line-clamp-2 leading-snug hover:text-blue-600 transition-colors">
+          <h3 className="text-xs md:text-sm text-gray-700 line-clamp-2 leading-snug hover:text-blue-600 transition-colors">
             {displayTitle}
           </h3>
           
@@ -144,13 +144,13 @@ export function ProductCard({
           <div className="flex flex-col mt-auto gap-0.5">
             {/* Crossed-out fake original price */}
             {fakeOriginalPrice > 0 && !isMerchant && (
-              <span className="text-[11px] text-gray-400 line-through font-semibold">
+              <span className="text-[10px] text-gray-400 line-through font-semibold">
                 {fakeOriginalPrice} {locale === 'ar' ? 'ج.م' : 'EGP'}
               </span>
             )}
-            <div className="flex items-end gap-1 flex-wrap">
-              <span className="text-[10px] text-gray-500 pb-0.5">{locale === 'ar' ? 'جنيه' : 'EGP'}</span>
-              <span className="text-lg font-black text-black leading-none">{displayPrice}</span>
+            <div className="flex items-end gap-0.5 md:gap-1 flex-wrap">
+              <span className="text-[9px] md:text-[10px] text-gray-500 pb-0.5">{locale === 'ar' ? 'جنيه' : 'EGP'}</span>
+              <span className="text-base md:text-lg font-black text-black leading-none">{displayPrice}</span>
             </div>
           </div>
           

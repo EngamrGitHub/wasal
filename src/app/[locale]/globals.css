@@ -130,8 +130,15 @@ body {
   max-width: 1200px !important;
   margin-left: auto !important;
   margin-right: auto !important;
-  padding-left: 1.25rem !important;
-  padding-right: 1.25rem !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
 }
 
 @media (min-width: 768px) {
@@ -145,6 +152,33 @@ body {
   .container {
     padding-left: 2.5rem !important;
     padding-right: 2.5rem !important;
+  }
+}
+
+/* Mobile Touch Improvements */
+@media (max-width: 640px) {
+  /* Ensure buttons/links are at least 44px tall for comfortable tapping */
+  button, a {
+    min-height: auto;
+  }
+
+  /* Prevent text from being too small on mobile */
+  html {
+    font-size: 15px;
+  }
+
+  /* Prevent horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Hide scrollbar on mobile carousels */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
