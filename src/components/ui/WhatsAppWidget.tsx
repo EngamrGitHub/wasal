@@ -4,9 +4,9 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react'; // Fallback icon if WhatsApp icon isn't available
 
 export function WhatsAppWidget({ phoneNumber }: { phoneNumber?: string }) {
-  // Use a default number or the one provided
-  const number = phoneNumber || '201000000000'; 
-  const waUrl = `https://wa.me/${number}`;
+  const number = phoneNumber || '201024380714'; 
+  const message = encodeURIComponent('مرحباً، أريد الاستفسار عن منتج من متجر وافر 👋');
+  const waUrl = `https://wa.me/${number}?text=${message}`;
 
   return (
     <a

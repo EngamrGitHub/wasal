@@ -49,7 +49,7 @@ export function Footer() {
                 <FacebookIcon className="w-5 h-5" />
               </a>
               <a 
-                href="https://wa.me/201024380714" 
+                href={`https://wa.me/201024380714?text=${encodeURIComponent('مرحباً، أريد الاستفسار عن منتج من متجر وافر 👋')}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:opacity-90 transition-all shadow-sm"
