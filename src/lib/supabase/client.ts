@@ -12,5 +12,14 @@ export function createClient() {
     return null as any;
   }
 
-  return createBrowserClient<Database>(url, key);
+  return createBrowserClient<Database>(url, key, {
+    global: {
+      fetch: (fetchUrl, options) => {
+        return fetch(fetchUrl, {
+          ...options,
+          cache: 'no-store'
+        });
+      }
+    }
+  });
 }

@@ -193,7 +193,7 @@ function AdminOrdersContent() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin/orders');
+      const response = await fetch('/api/admin/orders', { cache: 'no-store' });
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Failed to fetch orders');

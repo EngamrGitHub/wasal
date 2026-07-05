@@ -49,7 +49,7 @@ export default function AddProductPage() {
   useEffect(() => {
     async function loadReferenceData() {
       try {
-        const res = await fetch('/api/reference');
+        const res = await fetch('/api/reference', { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to fetch reference data');
         const data = await res.json();
         

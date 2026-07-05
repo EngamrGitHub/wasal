@@ -55,7 +55,7 @@ export default function MerchantOrdersPage() {
       setError(null);
 
       // Fetch from our secure API endpoint that bypasses RLS for nested sizes and colors tables
-      const response = await fetch('/api/merchant/orders');
+      const response = await fetch('/api/merchant/orders', { cache: 'no-store' });
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || 'Failed to fetch orders');

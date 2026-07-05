@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
         setLoading(true);
         setError(null);
         // Fetch product with variants and images via API to bypass RLS on colors/sizes
-        const response = await fetch(`/api/products/${id}`);
+        const response = await fetch(`/api/products/${id}`, { cache: 'no-store' });
         if (!response.ok) {
           const errData = await response.json();
           throw new Error(errData.error || 'Product not found');
