@@ -96,7 +96,7 @@ export function Footer() {
               </li>
               <li className="flex items-center space-x-3 space-x-reverse text-muted">
                 <Mail className="w-5 h-5 text-accent shrink-0" />
-                <span>support@wesal.com</span>
+                <span>wafirshope@gmail.com</span>
               </li>
             </ul>
           </div>
