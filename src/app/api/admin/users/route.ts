@@ -98,6 +98,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: authError?.message || 'فشل إنشاء المستخدم' }, { status: 400 });
     }
 
+    // Insert into stores table if Merchant
+    if (isMerchant && storeId) {
+      const { error: storeError } = await supabase.from('stores').insert({
+        id: storeId,
+        name: store_name_ar || store_name_en || name
+      });
+      if (storeError) console.error('Failed to insert store:', storeError.message);
+    }
+
     // 2. Insert into profiles
     const { error: profileError } = await supabase
       .from('profiles')
@@ -180,6 +189,15 @@ export async function PATCH(request: Request) {
     });
 
     if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
+
+    // Insert into stores if it's a new store ID
+    if (isMerchant && storeId && storeId !== existingStoreId) {
+      const { error: storeError } = await supabase.from('stores').insert({
+        id: storeId,
+        name: store_name_ar || store_name_en || name
+      });
+      if (storeError) console.error('Failed to insert store:', storeError.message);
+    }
 
     // 2. Update profiles table
     await supabase.from('profiles')
