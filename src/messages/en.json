@@ -31,7 +31,7 @@
     "view_all": "View All"
   },
   "Footer": {
-    "brand_description": "WESAL is your trusted e-commerce platform in the region, bringing together top vendors and latest products for an unmatched shopping experience.",
+    "brand_description": "WAFIR is your trusted e-commerce platform in the region, bringing together top vendors and latest products for an unmatched shopping experience.",
     "quick_links": "Quick Links",
     "about_us": "About Us",
     "shop_now": "Shop Now",
@@ -59,7 +59,7 @@
     "no_account": "Don't have an account?",
     "register_link": "Create new account",
     "register_title": "Create Account",
-    "register_subtitle": "Join WESAL community and start shopping today",
+    "register_subtitle": "Join WAFIR community and start shopping today",
     "full_name": "Full Name",
     "full_name_placeholder": "John Doe",
     "phone": "Phone Number",
@@ -164,7 +164,7 @@
     "Header": {
       "search_placeholder": "Search...",
       "store_name": "My Store Name",
-      "store_email": "merchant@wesal.com"
+      "store_email": "merchant@wafir.com"
     },
     "Dashboard": {
       "title": "Dashboard",

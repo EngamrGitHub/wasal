@@ -75,10 +75,10 @@ export function Footer() {
           <div>
             <h4 className="text-primary font-bold mb-6 text-lg">{t('categories')}</h4>
             <ul className="space-y-4 text-sm">
-              <li><Link href="#" className="text-muted hover:text-accent transition-colors">{t('electronics')}</Link></li>
-              <li><Link href="#" className="text-muted hover:text-accent transition-colors">{t('fashion')}</Link></li>
-              <li><Link href="#" className="text-muted hover:text-accent transition-colors">{t('home_garden')}</Link></li>
-              <li><Link href="#" className="text-muted hover:text-accent transition-colors">{t('beauty')}</Link></li>
+              <li><Link href={`/${locale}/categories/electronics`} className="text-muted hover:text-accent transition-colors">{t('electronics')}</Link></li>
+              <li><Link href={`/${locale}/categories/fashion`} className="text-muted hover:text-accent transition-colors">{t('fashion')}</Link></li>
+              <li><Link href={`/${locale}/categories/home`} className="text-muted hover:text-accent transition-colors">{t('home_garden')}</Link></li>
+              <li><Link href={`/${locale}/categories/beauty`} className="text-muted hover:text-accent transition-colors">{t('beauty')}</Link></li>
             </ul>
           </div>
 

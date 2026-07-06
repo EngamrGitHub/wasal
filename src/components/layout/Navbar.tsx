@@ -63,17 +63,6 @@ export function Navbar() {
     { icon: Home, label: t('home'), href: `/${locale}` },
   ];
 
-  const categories = [
-    { id: 'fashion', ar: 'أزياء', en: 'Fashion' },
-    { id: 'electronics', ar: 'إلكترونيات', en: 'Electronics' },
-    { id: 'home', ar: 'المنزل', en: 'Home' },
-    { id: 'beauty', ar: 'جمال وعناية', en: 'Beauty & Care' },
-    { id: 'toys', ar: 'ألعاب', en: 'Toys & Games' },
-    { id: 'sports', ar: 'رياضة', en: 'Sports' },
-    { id: 'supermarket', ar: 'سوبرماركت', en: 'Supermarket' },
-    { id: 'books', ar: 'كتب', en: 'Books' }
-  ];
-
   return (
     <nav className="sticky top-0 z-50 w-full bg-primary shadow-sm">
       {/* Main Navbar */}
@@ -211,40 +200,6 @@ export function Navbar() {
           </div>
         </div>
       )}
-
-      {/* Secondary Category Navigation Bar */}
-      <div className="hidden lg:block w-full bg-white border-t border-gray-100 shadow-sm">
-        <div className="container mx-auto px-4 h-12 flex items-center gap-6 overflow-x-auto scrollbar-hide">
-          <Link href={`/${locale}/categories`} className="font-bold text-sm text-gray-800 hover:text-primary whitespace-nowrap shrink-0">
-            {locale === 'ar' ? 'كل الفئات' : 'All Categories'}
-          </Link>
-          <div className="w-[1px] h-4 bg-gray-200 shrink-0"></div>
-          {categories.map((cat) => (
-            <Link 
-              key={cat.id} 
-              href={`/${locale}/categories/${cat.id}`}
-              className="text-sm font-semibold text-gray-600 hover:text-primary whitespace-nowrap shrink-0 transition-colors"
-            >
-              {locale === 'ar' ? cat.ar : cat.en}
-            </Link>
-          ))}
-        </div>
-      </div>
-      
-      {/* Mobile Category Navigation Bar */}
-      <div className="lg:hidden w-full bg-white border-t border-gray-100">
-        <div className="px-4 py-2.5 flex items-center gap-4 overflow-x-auto scrollbar-hide">
-          {categories.map((cat) => (
-            <Link 
-              key={cat.id} 
-              href={`/${locale}/categories/${cat.id}`}
-              className="text-xs font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 border border-gray-100 hover:border-primary hover:text-primary transition-all"
-            >
-              {locale === 'ar' ? cat.ar : cat.en}
-            </Link>
-          ))}
-        </div>
-      </div>
     </nav>
   )
 }
