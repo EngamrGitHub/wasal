@@ -4,7 +4,6 @@ import { Search, Menu, AlignLeft, AlignRight, LogOut } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useState } from 'react'
 import { NotificationDropdown } from '../layout/NotificationDropdown'
-import { createClient } from '@/src/lib/supabase/client'
 
 import { useRouter, usePathname } from '@/src/i18n/routing'
 import { useSearchParams } from 'next/navigation'
@@ -24,15 +23,8 @@ export function AdminHeader({ isCollapsed, toggleSidebar }: AdminHeaderProps) {
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '');
 
   const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        await supabase.auth.signOut();
-        window.location.href = `/${locale}/login`;
-      }
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+    // Use server-side API route to properly clear session cookies
+    window.location.href = `/api/auth/signout?locale=${locale}`;
   };
 
   return (

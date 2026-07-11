@@ -22,9 +22,13 @@ export default async function MerchantLayout({
     redirect(`/${locale}/login`);
   }
 
-  // Verify role is MERCHANT or ADMIN
+  // Verify role is exactly MERCHANT
   const role = user.user_metadata?.role;
-  if (role !== 'MERCHANT' && role !== 'ADMIN') {
+  if (role !== 'MERCHANT') {
+    // If ADMIN, redirect to admin dashboard instead
+    if (role === 'ADMIN') {
+      redirect(`/${locale}/admin`);
+    }
     redirect(`/${locale}`);
   }
 

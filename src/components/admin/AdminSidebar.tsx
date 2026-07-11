@@ -7,7 +7,6 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, Settings, Tag,
   ChevronLeft, ChevronRight, LogOut
 } from 'lucide-react'
-import { createClient } from '@/src/lib/supabase/client'
 
 interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -29,15 +28,8 @@ export function AdminSidebar({ isCollapsed, toggleSidebar }: AdminSidebarProps) 
   ];
 
   const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        await supabase.auth.signOut();
-        window.location.href = `/${locale}/login`;
-      }
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+    // Use server-side API route to properly clear session cookies
+    window.location.href = `/api/auth/signout?locale=${locale}`;
   };
 
   return (

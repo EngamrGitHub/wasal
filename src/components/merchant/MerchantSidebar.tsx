@@ -6,7 +6,6 @@ import { useTranslations, useLocale } from 'next-intl'
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, LogOut, ChevronLeft, ChevronRight 
 } from 'lucide-react'
-import { createClient } from '@/src/lib/supabase/client'
 
 interface MerchantSidebarProps {
   isCollapsed?: boolean;
@@ -26,15 +25,8 @@ export function MerchantSidebar({ isCollapsed = false, toggleSidebar }: Merchant
   ];
 
   const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        await supabase.auth.signOut();
-        window.location.href = `/${locale}/login`;
-      }
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+    // Use server-side API route to properly clear session cookies
+    window.location.href = `/api/auth/signout?locale=${locale}`;
   };
 
   return (
