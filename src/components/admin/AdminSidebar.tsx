@@ -38,7 +38,7 @@ export function AdminSidebar({ isCollapsed, toggleSidebar }: AdminSidebarProps) 
       console.error('Logout error:', err);
     } finally {
       // Hard reload to clear all session state
-      window.location.replace(`/${locale}/login`);
+      window.location.replace(`/${locale}`);
     }
   };
 

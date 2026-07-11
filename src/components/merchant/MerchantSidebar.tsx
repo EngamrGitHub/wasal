@@ -34,7 +34,7 @@ export function MerchantSidebar({ isCollapsed = false, toggleSidebar }: Merchant
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      window.location.replace(`/${locale}/login`);
+      window.location.replace(`/${locale}`);
     }
   };
 

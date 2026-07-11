@@ -32,7 +32,7 @@ export function AdminHeader({ isCollapsed, toggleSidebar }: AdminHeaderProps) {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      window.location.replace(`/${locale}/login`);
+      window.location.replace(`/${locale}`);
     }
   };
 
