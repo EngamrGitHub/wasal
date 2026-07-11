@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
         const [users, orders, stores, pendingProducts] = await Promise.all([
           UserService.count().catch(() => 0),
           OrderService.count().catch(() => 0),
-          StoreService.count('status', 'ACTIVE').catch(() => 0),
+          StoreService.count().catch(() => 0),
           ProductService.getPendingProducts().then(res => res.length).catch(() => 0) // or add count method to ProductService
         ]);
 
