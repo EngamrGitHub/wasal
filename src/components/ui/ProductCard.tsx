@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { ShoppingCart, Star, Trash2 } from 'lucide-react';
 import { Product } from '@/src/types';
 import { useLocale } from 'next-intl';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 interface ProductCardProps {
   product?: Product;
@@ -39,6 +39,8 @@ export function ProductCard({
   const locale = useLocale();
   const isRtl = locale === 'ar';
   const [isFavorite, setIsFavorite] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const handleImgError = useCallback(() => setImgError(true), []);
 
   const productId = product?.id || id || '';
   const defaultVariant = product?.product_variants?.[0];
@@ -98,9 +100,10 @@ export function ProductCard({
       <div className="relative aspect-[3/4] bg-gray-50 overflow-hidden pt-4">
         <Link href={`/product/${productId}`}>
           <Image
-            src={displayImage}
+            src={imgError ? 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' : displayImage}
             alt={displayTitle || 'Product Image'}
             fill
+            onError={handleImgError}
             className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
