@@ -5,14 +5,27 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient()
   
   if (supabase) {
-    // This signs out on the server side and properly clears the session cookies
     await supabase.auth.signOut()
   }
 
-  // Get the locale from the request to redirect to the correct login page
   const url = new URL(request.url)
   const locale = url.searchParams.get('locale') || 'ar'
 
-  // Redirect to login page - the session cookies are now cleared
-  return NextResponse.redirect(new URL(`/${locale}/login`, request.url))
+  const response = NextResponse.redirect(new URL(`/${locale}/login`, request.url))
+  
+  // Manually clear all Supabase auth cookies to ensure session is fully gone
+  const cookieNames = [
+    'sb-access-token',
+    'sb-refresh-token', 
+    `sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`,
+  ]
+  cookieNames.forEach(name => {
+    response.cookies.set(name, '', { maxAge: 0, path: '/' })
+  })
+
+  return response
+}
+
+export async function POST(request: NextRequest) {
+  return GET(request)
 }
