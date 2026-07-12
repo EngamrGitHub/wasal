@@ -123,7 +123,7 @@ export function ProductCard({
                 ))}
               </div>
               {uniqueColors.length > 3 && (
-                <span className="text-[10px] text-gray-500 font-bold bg-white/90 px-1 rounded">+{uniqueColors.length - 3}</span>
+                <span className="text-[10px] text-gray-600 font-bold bg-white/90 px-1 rounded">+{uniqueColors.length - 3}</span>
               )}
             </div>
           );
@@ -149,7 +149,7 @@ export function ProductCard({
           <div className="flex flex-col mt-auto gap-0.5">
             {/* Crossed-out fake original price */}
             {fakeOriginalPrice > 0 && !isMerchant && (
-              <span className="text-[10px] text-gray-400 line-through font-semibold">
+              <span className="text-[10px] text-gray-500 line-through font-semibold">
                 {fakeOriginalPrice} {locale === 'ar' ? 'ج.م' : 'EGP'}
               </span>
             )}

@@ -147,6 +147,7 @@ export function CategoryCarousel() {
         
         {/* Navigation Buttons */}
         <button 
+          aria-label="Scroll Left"
           onClick={() => scroll('left')}
           className={`absolute z-10 top-1/2 -translate-y-1/2 ${isRtl ? '-right-4' : '-left-4'} w-10 h-10 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center text-gray-600 hover:text-primary hover:scale-105 transition-all opacity-0 group-hover:opacity-100`}
         >
@@ -154,6 +155,7 @@ export function CategoryCarousel() {
         </button>
 
         <button 
+          aria-label="Scroll Right"
           onClick={() => scroll('right')}
           className={`absolute z-10 top-1/2 -translate-y-1/2 ${isRtl ? '-left-4' : '-right-4'} w-10 h-10 bg-white rounded-full shadow-md border border-gray-100 flex items-center justify-center text-gray-600 hover:text-primary hover:scale-105 transition-all opacity-0 group-hover:opacity-100`}
         >
@@ -185,7 +187,7 @@ export function CategoryCarousel() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-500">
                     No Image
                   </div>
                 )}
