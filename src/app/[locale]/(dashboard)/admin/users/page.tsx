@@ -139,7 +139,14 @@ export default function AdminUsersPage() {
     const isEdit = !!editingUser;
     const url = '/api/admin/users';
     const method = isEdit ? 'PATCH' : 'POST';
-    const bodyPayload = isEdit ? { id: editingUser.id, ...form } : form;
+    
+    // Clean inputs to prevent trailing space login issues
+    const cleanedForm = {
+      ...form,
+      email: form.email.trim(),
+      password: form.password.trim(),
+    };
+    const bodyPayload = isEdit ? { id: editingUser.id, ...cleanedForm } : cleanedForm;
 
     try {
       const res = await fetch(url, {

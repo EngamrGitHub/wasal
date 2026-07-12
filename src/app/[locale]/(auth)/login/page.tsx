@@ -22,6 +22,9 @@ export default function LoginPage() {
     e.preventDefault();
     if (!email || !password) return;
 
+    const cleanedEmail = email.trim();
+    const cleanedPassword = password.trim();
+
     setLoading(true);
     setError('');
 
@@ -30,8 +33,8 @@ export default function LoginPage() {
       if (!supabase) throw new Error('Supabase client not initialized');
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: cleanedEmail,
+        password: cleanedPassword
       });
 
       if (signInError) throw signInError;
