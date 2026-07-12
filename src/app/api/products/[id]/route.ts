@@ -39,7 +39,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       if (productData.product_variants) {
         productData.product_variants.forEach((variant: any) => {
           variant.original_price = variant.price;
-          const finalPrice = Math.ceil(variant.price * 1.25 + 50);
+          // The price is already marked up by the admin during approval
+          const finalPrice = variant.price;
           variant.price = finalPrice;
           variant.fake_original_price = Math.ceil(finalPrice * (1 + fakeData.discountPct / 100));
         });

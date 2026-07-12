@@ -7,13 +7,13 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+
     const body = await req.json();
-    const { 
-      customerName, 
-      phone, 
-      address, 
-      governorateId, 
+    const {
+      customerName,
+      phone,
+      address,
+      governorateId,
       items, // Array of { productId, variantId, quantity }
       couponCode,
       guestId = 'de000000-0000-0000-0000-000000000000'
@@ -46,18 +46,18 @@ export async function POST(req: NextRequest) {
 
     // 3. Group items by store_id
     const storeGroups: Record<string, { storeId: string; items: any[]; subtotal: number; commissionRate: number }> = {};
-    
+
     let totalOrderValue = 0; // for calculating proportional discount
 
     for (const item of items) {
       const product = productsMap[item.productId];
       if (!product) continue;
-      
+
       const variant = product.product_variants.find((v: any) => v.id === item.variantId) || product.product_variants[0];
       if (!variant) continue;
 
       const storeId = product.store_id || 'platform'; // 'platform' means Wesal's own inventory
-      
+
       if (!storeGroups[storeId]) {
         storeGroups[storeId] = {
           storeId,
@@ -67,11 +67,11 @@ export async function POST(req: NextRequest) {
         };
       }
 
-      // Apply smart pricing markup: ceil((Original Price * 1.25) + 50)
+      // The price is already marked up by the admin during approval
       const basePrice = Number(variant.price || 0);
-      const price = Math.ceil(basePrice * 1.25 + 50);
+      const price = basePrice;
       const subtotal = price * item.quantity;
-      
+
       storeGroups[storeId].items.push({
         ...item,
         product,
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         price,
         subtotal
       });
-      
+
       storeGroups[storeId].subtotal += subtotal;
       totalOrderValue += subtotal;
     }
@@ -97,17 +97,17 @@ export async function POST(req: NextRequest) {
         .eq('code', couponCode)
         .eq('is_active', true)
         .single();
-        
+
       if (coupon) {
-         appliedCouponId = coupon.id;
-         couponType = coupon.type;
-         couponValue = Number(coupon.value);
-         
-         if (couponType === 'PERCENTAGE') {
-            totalDiscountAmount = totalOrderValue * (couponValue / 100);
-         } else if (couponType === 'FIXED') {
-            totalDiscountAmount = couponValue;
-         }
+        appliedCouponId = coupon.id;
+        couponType = coupon.type;
+        couponValue = Number(coupon.value);
+
+        if (couponType === 'PERCENTAGE') {
+          totalDiscountAmount = totalOrderValue * (couponValue / 100);
+        } else if (couponType === 'FIXED') {
+          totalDiscountAmount = couponValue;
+        }
       }
     }
 
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     const createdOrders = [];
 
     for (const [storeId, group] of Object.entries(storeGroups)) {
-      
+
       // Calculate Shipping for this specific store
       let shippingPrice = 45; // Default fallback
       if (storeId !== 'platform') {
@@ -127,8 +127,8 @@ export async function POST(req: NextRequest) {
           shippingPrice = Number(quoteData);
         }
       } else {
-         const { data: gov } = await supabase.from('governorates').select('shipping_price').eq('id', governorateId).single();
-         if (gov) shippingPrice = Number(gov.shipping_price || 0);
+        const { data: gov } = await supabase.from('governorates').select('shipping_price').eq('id', governorateId).single();
+        if (gov) shippingPrice = Number(gov.shipping_price || 0);
       }
 
       // Calculate Commission for this store (Total of all items)
@@ -190,12 +190,12 @@ export async function POST(req: NextRequest) {
 
       // Create Seller Transaction if it's a real merchant store
       if (storeId !== 'platform') {
-         await supabase.from('seller_transactions').insert({
-            seller_id: storeId,
-            order_id: orderData.id,
-            amount: group.subtotal - storeCommission, // Merchant earns subtotal minus platform commission
-            status: 'PENDING'
-         });
+        await supabase.from('seller_transactions').insert({
+          seller_id: storeId,
+          order_id: orderData.id,
+          amount: group.subtotal - storeCommission, // Merchant earns subtotal minus platform commission
+          status: 'PENDING'
+        });
       }
     }
 

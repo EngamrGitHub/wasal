@@ -27,16 +27,16 @@ export const ProductService = {
     if (search) {
       query = query.or(`name_en.ilike.%${search}%,name_ar.ilike.%${search}%`);
     }
-    
+
     const { data, error } = await query;
-    
+
     if (error) {
       console.error('Error fetching products:', error.message);
       throw new Error(error.message);
     }
 
     // Apply smart pricing logic for the public storefront: 
-    // Final Price = ceil((Original Price * 1.25) + 50)
+    // Final Price = ceil((Original Price * 1.10) + 40)  → 10% commission + 40 EGP shipping
     if (data) {
       data.forEach((product: any) => {
         // Add fake social proof data
@@ -48,8 +48,8 @@ export const ProductService = {
         if (product.product_variants) {
           product.product_variants.forEach((variant: any) => {
             variant.original_price = variant.price;
-            // Final storefront price
-            const finalPrice = Math.ceil(variant.price * 1.25 + 50);
+            // The price is already marked up by the admin during approval
+            const finalPrice = variant.price;
             variant.price = finalPrice;
             // Fake "before discount" price (shown crossed-out), higher than final price
             variant.fake_original_price = Math.ceil(finalPrice * (1 + fakeData.discountPct / 100));
@@ -57,7 +57,7 @@ export const ProductService = {
         }
       });
     }
-    
+
     return data as unknown as Product[];
   },
 
@@ -72,7 +72,7 @@ export const ProductService = {
       .from('products')
       .select('*, product_variants(*), product_images(*)')
       .eq('approval_status', 'PENDING');
-      
+
     if (error) throw new Error(error.message);
     return data as unknown as Product[];
   },
@@ -88,7 +88,7 @@ export const ProductService = {
       .from('products')
       .update({ approval_status: 'APPROVED', rejection_reason: null })
       .eq('id', productId);
-      
+
     if (error) throw new Error(error.message);
   },
 
@@ -110,7 +110,7 @@ export const ProductService = {
     if (!prodData || prodData.length === 0) throw new Error('Failed to update product due to RLS policies.');
 
     // 2. Update variant prices in batch
-    const updatePromises = variants.map(v => 
+    const updatePromises = variants.map(v =>
       supabase
         .from('product_variants')
         .update({ price: v.price })
@@ -131,7 +131,7 @@ export const ProductService = {
       .from('products')
       .update({ approval_status: 'REJECTED', rejection_reason: reason })
       .eq('id', productId);
-      
+
     if (error) throw new Error(error.message);
   },
 
@@ -145,11 +145,11 @@ export const ProductService = {
     // Fetch the current user (merchant) to set the store_id/seller context
     const { data: { user } } = await supabase.auth.getUser();
     const storeId = user?.user_metadata?.store_id || null;
-    
+
     if (!storeId) {
       throw new Error("No store assigned to this merchant. Please contact the administrator.");
     }
-    
+
     // 1. Insert base product
     const { data: productData, error: productError } = await supabase
       .from('products')
@@ -165,7 +165,7 @@ export const ProductService = {
       })
       .select()
       .single();
-      
+
     if (productError) throw new Error(productError.message);
 
     const productId = productData.id;
@@ -197,7 +197,7 @@ export const ProductService = {
       // We will attach images to the FIRST variant by default if specific variant binding isn't provided from UI
       if (payload.images && payload.images.length > 0) {
         const firstVariantId = variantData[0].id;
-        
+
         const imagesToInsert = payload.images.map((img: any, index: number) => ({
           product_id: productId,
           variant_id: firstVariantId,
@@ -209,7 +209,7 @@ export const ProductService = {
         const { error: imageError } = await supabase
           .from('product_images')
           .insert(imagesToInsert);
-          
+
         if (imageError) throw new Error(imageError.message);
       }
     }

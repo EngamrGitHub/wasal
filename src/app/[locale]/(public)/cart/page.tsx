@@ -33,10 +33,10 @@ function CartCheckoutContent() {
   const [success, setSuccess] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [productsMap, setProductsMap] = useState<Record<string, ProductDetails>>({});
-  
+
   const [governorates, setGovernorates] = useState<any[]>([]);
   const [selectedGovId, setSelectedGovId] = useState('');
-  
+
   const [shippingQuotes, setShippingQuotes] = useState<Record<string, number>>({});
   const [shippingLoading, setShippingLoading] = useState(false);
 
@@ -53,7 +53,7 @@ function CartCheckoutContent() {
   // 1. Sync URL and LocalStorage into cartItems array
   useEffect(() => {
     let currentCart: CartItem[] = [];
-    
+
     // First read from LocalStorage
     const saved = localStorage.getItem('wesal_cart');
     if (saved) {
@@ -77,7 +77,7 @@ function CartCheckoutContent() {
       // URL parameters take priority (e.g. direct Buy Now links)
       const parsedQty = urlQuantity ? parseInt(urlQuantity, 10) : 1;
       const vId = variantId || '';
-      
+
       const existingIndex = currentCart.findIndex(item => item.variantId === vId && item.productId === productId);
       if (existingIndex >= 0) {
         currentCart[existingIndex].quantity += (isNaN(parsedQty) ? 1 : parsedQty);
@@ -137,15 +137,13 @@ function CartCheckoutContent() {
 
         if (productsData) {
           const pMap: Record<string, ProductDetails> = {};
-          productsData.forEach((p: any) => { 
-            // Apply the same smart pricing logic as the storefront: ceil((Original Price * 1.25) + 50)
+          productsData.forEach((p: any) => {
             if (p.product_variants) {
               p.product_variants.forEach((v: any) => {
                 v.original_price = v.price;
-                v.price = Math.ceil(v.price * 1.25 + 50);
               });
             }
-            pMap[p.id] = p; 
+            pMap[p.id] = p;
           });
           setProductsMap(pMap);
 
@@ -171,7 +169,7 @@ function CartCheckoutContent() {
   useEffect(() => {
     async function fetchQuotes() {
       if (!selectedGovId || cartItems.length === 0 || Object.keys(productsMap).length === 0) return;
-      
+
       const storeIds = Array.from(new Set(
         cartItems.map(item => {
           const product = productsMap[item.productId];
@@ -183,9 +181,9 @@ function CartCheckoutContent() {
       try {
         // Send actual store IDs (filter out 'platform')
         const validStoreIds = storeIds.filter(id => id !== 'platform');
-        
+
         let fetchedQuotes: Record<string, number> = {};
-        
+
         if (validStoreIds.length > 0) {
           const response = await fetch('/api/shipping/quotes', {
             method: 'POST',
@@ -215,7 +213,7 @@ function CartCheckoutContent() {
   }, [selectedGovId, cartItems, productsMap, governorates]);
 
   const updateQuantity = (variantId: string, newQty: number) => {
-    const updated = cartItems.map(item => 
+    const updated = cartItems.map(item =>
       item.variantId === variantId ? { ...item, quantity: newQty } : item
     );
     setCartItems(updated);
@@ -235,17 +233,17 @@ function CartCheckoutContent() {
     const product = productsMap[item.productId];
     if (!product) return acc;
     const storeId = product.store_id || 'platform';
-    const storeName = product.stores?.name || (isRtl ? 'منتجات وصال' : 'Wesal Products');
-    
+    const storeName = product.stores?.name || (isRtl ? 'منتجات وافر' : 'WafirProducts');
+
     if (!acc[storeId]) {
       acc[storeId] = { storeId, storeName, items: [], subtotal: 0 };
     }
-    
+
     const variant = product.product_variants.find((v: any) => v.id === item.variantId) || product.product_variants[0];
     const price = Number(variant?.price || 0);
     acc[storeId].items.push({ cartItem: item, product, variant, price });
     acc[storeId].subtotal += price * item.quantity;
-    
+
     return acc;
   }, {} as Record<string, { storeId: string; storeName: string; items: any[]; subtotal: number }>);
 
@@ -317,7 +315,7 @@ function CartCheckoutContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ variantId: item.variantId, quantity: item.quantity })
-        }).catch(() => {});
+        }).catch(() => { });
       });
 
       if (appliedCoupon?.couponId) {
@@ -325,7 +323,7 @@ function CartCheckoutContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ couponId: appliedCoupon.couponId })
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       localStorage.removeItem('wesal_cart');
@@ -400,7 +398,7 @@ function CartCheckoutContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Columns (Cart Items Grouped by Store) */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {Object.values(groupedItems).map((group, index) => (
             <div key={group.storeId} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b pb-3">
@@ -427,13 +425,13 @@ function CartCheckoutContent() {
                       <div className="flex-1 space-y-1">
                         <h4 className="font-bold text-gray-900 text-base">{productName}</h4>
                         <p className="text-xs text-gray-500 font-medium">
-                          {variant?.colors?.name || variant?.sizes?.name 
+                          {variant?.colors?.name || variant?.sizes?.name
                             ? [variant?.colors?.name, variant?.sizes?.name].filter(Boolean).join(' - ')
                             : `SKU: ${variant?.sku || product?.sku || 'N/A'}`}
                         </p>
                         <p className="text-lg font-black text-primary">{price.toFixed(2)} EGP</p>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                         <button onClick={() => updateQuantity(cartItem.variantId, Math.max(1, cartItem.quantity - 1))} className="p-1 text-gray-500 hover:text-primary">
                           <Minus className="w-4 h-4" />

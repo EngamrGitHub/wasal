@@ -21,7 +21,7 @@ export function MerchantHeader({ isCollapsed, toggleSidebar }: MerchantHeaderPro
   const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '');
-  
+
   const [storeName, setStoreName] = useState('');
   const [storeEmail, setStoreEmail] = useState('');
 
@@ -32,9 +32,9 @@ export function MerchantHeader({ isCollapsed, toggleSidebar }: MerchantHeaderPro
         if (!supabase) return;
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const name = locale === 'ar' 
-            ? (user.user_metadata?.store_name_ar || user.user_metadata?.full_name || 'متجر وصال')
-            : (user.user_metadata?.store_name_en || user.user_metadata?.full_name || 'Wesal Store');
+          const name = locale === 'ar'
+            ? (user.user_metadata?.store_name_ar || user.user_metadata?.full_name || 'متجر وافر')
+            : (user.user_metadata?.store_name_en || user.user_metadata?.full_name || 'Wafir Store');
           setStoreName(name);
           setStoreEmail(user.email || '');
         }
@@ -48,7 +48,7 @@ export function MerchantHeader({ isCollapsed, toggleSidebar }: MerchantHeaderPro
   return (
     <header className="h-20 bg-white border-b border-gray-100 sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 shadow-sm">
       <div className="flex items-center gap-4">
-        <button 
+        <button
           className="lg:hidden p-2 text-gray-500 hover:text-primary transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
