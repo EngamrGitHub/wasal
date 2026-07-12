@@ -33,8 +33,9 @@ export function Hero() {
               <div className="relative w-full h-full">
                 <Image 
                   src={slide.image} 
-                  alt={t(slide.title)}
+                  alt={t(slide.title) || "Hero Image"}
                   fill
+                  sizes="100vw"
                   className="object-cover"
                   priority={index === 0}
                 />

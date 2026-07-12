@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://wafir.com'),
   title: "Wafir | وافر",
   description: "B2B & B2C E-commerce Marketplace",
   icons: {

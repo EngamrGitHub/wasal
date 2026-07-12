@@ -88,6 +88,7 @@ export function ProductCard({
 
       {/* Heart Icon (Favorite) */}
       <button 
+        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsFavorite(!isFavorite); }}
         className={`absolute top-2 ${isRtl ? 'left-2' : 'right-2'} z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center transition-all ${isFavorite ? 'text-red-500 scale-110' : 'text-gray-400 hover:text-red-500 hover:bg-white hover:scale-110'}`}
       >
@@ -103,6 +104,7 @@ export function ProductCard({
             src={imgError ? 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' : displayImage}
             alt={displayTitle || 'Product Image'}
             fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
             onError={handleImgError}
             className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
           />
