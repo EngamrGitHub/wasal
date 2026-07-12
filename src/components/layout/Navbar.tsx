@@ -73,6 +73,8 @@ export function Navbar() {
           {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileMenuOpen}
             className="lg:hidden p-2 -ml-2 text-gray-600 hover:text-primary transition-colors"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -96,12 +98,13 @@ export function Navbar() {
           {/* Mobile Quick Actions */}
           <div className="flex lg:hidden items-center gap-2">
             <button 
-              onClick={toggleLanguage} 
+              onClick={toggleLanguage}
+              aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
               className="p-2 text-sm font-bold text-black/80 hover:text-black"
             >
               {locale === 'ar' ? 'EN' : 'AR'}
             </button>
-            <Link href={`/${locale}/cart`} className="relative p-2 text-black/80 hover:text-black">
+            <Link href={`/${locale}/cart`} aria-label={`Cart (${cartCount} items)`} className="relative p-2 text-black/80 hover:text-black">
               <ShoppingCart className="w-6 h-6" />
               {cartCount > 0 && (
                 <span className="absolute top-0 right-0 w-4 h-4 bg-black text-white text-[10px] flex items-center justify-center rounded-full font-bold">
@@ -120,6 +123,7 @@ export function Navbar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('search_placeholder') || 'Search...'}
+              aria-label={t('search_placeholder') || 'Search products'}
               className={`w-full h-12 bg-white rounded-md ${locale === 'ar' ? 'pr-4 pl-24' : 'pl-4 pr-24'} text-sm focus:outline-none focus:ring-2 focus:ring-black/20 transition-all`}
             />
             <button type="submit" className={`absolute ${locale === 'ar' ? 'left-1' : 'right-1'} h-10 px-6 lg:px-8 bg-black text-white rounded-md font-bold text-sm hover:bg-black/90 transition-colors`}>
@@ -161,6 +165,7 @@ export function Navbar() {
           {/* Desktop Language Toggle */}
           <button 
             onClick={toggleLanguage}
+            aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
             className="flex flex-col items-center gap-1 group"
           >
             <div className="p-2 rounded-xl group-hover:bg-black/5">

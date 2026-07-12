@@ -43,6 +43,7 @@ export function Footer() {
                 href="https://www.facebook.com/profile.php?id=61591953140580" 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Follow us on Facebook"
                 className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:opacity-90 transition-all shadow-sm"
                 title="Facebook"
               >
@@ -52,6 +53,7 @@ export function Footer() {
                 href={`https://wa.me/201024380714?text=${encodeURIComponent('مرحباً، أريد الاستفسار عن منتج من متجر وافر 👋')}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                aria-label="Contact us on WhatsApp"
                 className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:opacity-90 transition-all shadow-sm"
                 title="WhatsApp: 01024380714"
               >
