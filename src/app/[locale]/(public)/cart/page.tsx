@@ -148,6 +148,15 @@ function CartCheckoutContent() {
             pMap[p.id] = p; 
           });
           setProductsMap(pMap);
+
+          // Remove stale cart items whose products no longer exist in the database
+          const validIds = new Set(Object.keys(pMap));
+          const validCart = cartItems.filter(item => validIds.has(item.productId));
+          if (validCart.length !== cartItems.length) {
+            setCartItems(validCart);
+            localStorage.setItem('wesal_cart', JSON.stringify(validCart));
+            window.dispatchEvent(new Event('wesal_cart_updated'));
+          }
         }
       } catch (err) {
         console.error('Error loading checkout data:', err);
@@ -156,7 +165,7 @@ function CartCheckoutContent() {
       }
     }
     loadData();
-  }, [cartItems.length, isRtl]);
+  }, [JSON.stringify(cartItems), isRtl]);
 
   // 3. Fetch shipping quotes whenever selectedGovId or stores change
   useEffect(() => {
